@@ -1,3 +1,9 @@
+.app {
+    max-width: 400px;
+    padding: 5px;
+    width: 100%;
+}
+
 .button {
     display: flex;
     justify-content: center;
@@ -5,10 +11,11 @@
     padding: 0;
 }
 
-.videoBookmarksList {
+.videoBookmarksList,
+.otherBookmarksList {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
 }
 
 .videoBookmark {

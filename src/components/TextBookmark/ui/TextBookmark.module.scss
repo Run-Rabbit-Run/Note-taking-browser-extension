@@ -1,0 +1,48 @@
+.selectedText {
+	background-color: bisque;
+	color: black;
+	overflow-wrap: break-word;
+	scrollbar-color: red orange;
+	scrollbar-width: none;
+}
+
+.noteText {
+	background-color: darksalmon;
+	color: black;
+	overflow-wrap: break-word;
+	scrollbar-color: red orange;
+	scrollbar-width: none;
+}
+
+.otherBookmark {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+
+	&:hover .floatingButtons {
+		display: flex;
+	}
+}
+
+.floatingButtons {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: none;
+	cursor: pointer;
+	gap: 5px;
+}
+
+.button {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0;
+}
+
+.icon {
+	width: 20px;
+	height: 20px;
+	color: #747bff;
+}

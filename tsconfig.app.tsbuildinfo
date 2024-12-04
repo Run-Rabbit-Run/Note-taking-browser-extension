@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/helpers/typeutils.ts","./src/helpers/utils.ts","./src/scripts/background.ts","./src/scripts/contentscript.ts","./src/types/types.ts"],"version":"5.6.2"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/textbookmark/ui/textbookmark.tsx","./src/helpers/typeutils.ts","./src/helpers/utils.ts","./src/helpers/createelements/createnoteeditorpopup.ts","./src/scripts/background.ts","./src/scripts/contentscript.ts","./src/types/types.ts"],"version":"5.6.2"}

@@ -62,7 +62,32 @@ export default tseslint.config(
         "@typescript-eslint/interface-name-prefix": "off",
         "@typescript-eslint/no-namespace": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
-        "@typescript-eslint/naming-convention": "warn",
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                selector: 'default',
+                format: ['camelCase'],
+                leadingUnderscore: 'allow',
+                trailingUnderscore: 'allow',
+            },
+
+            {
+                selector: 'import',
+                format: ['camelCase', 'PascalCase'],
+            },
+
+            {
+                selector: 'variable',
+                format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+                leadingUnderscore: 'allow',
+                trailingUnderscore: 'allow',
+            },
+
+            {
+                selector: 'typeLike',
+                format: ['PascalCase'],
+            },
+        ],
         "indent": ["error", 4],
         "semi": ["error", "always"],
     },

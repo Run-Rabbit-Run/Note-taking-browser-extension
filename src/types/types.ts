@@ -3,7 +3,7 @@ export type VideoBookmarkType = {
     desc: string,
 }
 
-export type OtherSiteBookmarkType = {
+export interface OtherSiteBookmarkType {
     selectedText: string,
     noteText: string,
 }

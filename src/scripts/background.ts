@@ -10,6 +10,7 @@ chrome.tabs.onUpdated.addListener((tabId, _, tab) => {
     } else {
         chrome.tabs.sendMessage(tabId, {
             type: "OTHER_SITE",
+            otherUrl: tab?.url,
         }).catch(console.error);
     }
 });
