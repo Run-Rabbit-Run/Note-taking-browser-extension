@@ -1,7 +1,7 @@
 import cls from './TextBookmark.module.scss';
 import { OtherSiteBookmarkType } from '../../../types/types.ts';
 import DeleteIcon from '../../../assets/delete.svg?react';
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 export interface TextBookmarkProps {
     bookmark: OtherSiteBookmarkType;
@@ -40,7 +40,7 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
         }
     };
 
-    const onSubmit = () => {
+    const onSubmit = useCallback(() => {
         const newBookmark = {
             ...bookmark,
             noteText,
@@ -48,7 +48,7 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
 
         onEdit(newBookmark);
         setIsEdit(false);
-    };
+    }, [bookmark, onEdit, noteText]);
 
     const onEnterClick = (e: KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -70,7 +70,7 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
         return () => {
             document.removeEventListener('keypress', onEnterClick);
         };
-    }, []);
+    }, [bookmark, onEdit, noteText]);
 
     return (
         <div key={`rabbit-bookmark-${bookmark.selectedText}`} className={cls.otherBookmark}>

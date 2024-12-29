@@ -81,13 +81,28 @@ const App = () => {
         }, getBookmarksFromStorage);
     }, [activeTab?.id]);
 
-    const onEditOtherBookmark = useCallback((bookmark: OtherSiteBookmarkType) => {
-        chrome.tabs.sendMessage(activeTab?.id || 0, {
-            type: "EDIT_OTHER_SITE_BOOKMARK",
-            selectedText: bookmark.selectedText,
-            noteText: bookmark.noteText,
-        }, getBookmarksFromStorage);
-    }, [activeTab?.id]);
+    const onEditOtherBookmark = useCallback(async (bookmark: OtherSiteBookmarkType) => {
+        const { selectedText, noteText } = bookmark;
+
+        const editedBookmark = otherSiteBookmarks
+            .find((bookmark) => bookmark.selectedText === selectedText);
+
+        if (editedBookmark) {
+            editedBookmark.noteText = noteText;
+            const newBookmark = {
+                selectedText,
+                noteText,
+            };
+            const editedBookmarkIndex = otherSiteBookmarks
+                .findIndex((bookmark) => bookmark.selectedText === selectedText);
+
+            otherSiteBookmarks[editedBookmarkIndex] = newBookmark;
+
+            if (activeTab?.url) {
+                await chrome.storage.sync.set({[activeTab?.url]: JSON.stringify(otherSiteBookmarks)});
+            }
+        }
+    }, [activeTab, otherSiteBookmarks]);
 
     useEffect(() => {
         getBookmarksFromStorage().catch(console.error);

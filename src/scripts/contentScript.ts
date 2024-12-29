@@ -172,25 +172,6 @@ const BUTTON_WIDTH = 67;
             chrome.storage.sync.set({[currentOtherSiteUrl]: JSON.stringify(otherSiteBookmarks)});
 
             response(otherSiteBookmarks);
-        } else if (type === 'EDIT_OTHER_SITE_BOOKMARK') {
-            const { selectedText, noteText } = obj;
-            const editedBookmark = otherSiteBookmarks
-                .find((bookmark) => bookmark.selectedText === selectedText);
-
-            if (editedBookmark) {
-                editedBookmark.noteText = noteText;
-                const newBookmark = {
-                    selectedText,
-                    noteText,
-                };
-                const editedBookmarkIndex = otherSiteBookmarks
-                    .findIndex((bookmark) => bookmark.selectedText === selectedText);
-
-                otherSiteBookmarks[editedBookmarkIndex] = newBookmark;
-                chrome.storage.sync.set({[currentOtherSiteUrl]: JSON.stringify(otherSiteBookmarks)});
-
-                response(otherSiteBookmarks);
-            }
         }
     });
 
