@@ -4,13 +4,6 @@
     width: 100%;
 }
 
-.button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-}
-
 .videoBookmarksList,
 .otherBookmarksList {
     display: flex;
@@ -18,21 +11,6 @@
     gap: 5px;
 }
 
-.videoBookmark {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 5px;
-    width: 100%;
-}
-
-.buttonWrapper {
-    display: flex;
-    gap: 5px;
-}
-
-.icon {
-    width: 20px;
-    height: 20px;
-    color: #747bff;
+.bookmarkList {
+    margin-bottom: 5px;
 }

@@ -6,11 +6,12 @@ chrome.tabs.onUpdated.addListener((tabId, _, tab) => {
         chrome.tabs.sendMessage(tabId, {
             type: "VIDEO_ID",
             videoId: urlParameters.get("v"),
+            videoUrl: tab.url,
         }).catch(console.error);
     } else {
         chrome.tabs.sendMessage(tabId, {
             type: "OTHER_SITE",
-            otherUrl: tab?.url,
+            otherUrl: tab.url,
         }).catch(console.error);
     }
 });

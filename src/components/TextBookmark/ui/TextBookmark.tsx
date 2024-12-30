@@ -5,8 +5,8 @@ import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 export interface TextBookmarkProps {
     bookmark: OtherSiteBookmarkType;
-    onEdit: (bookmark: OtherSiteBookmarkType) => void;
-    onDelete: (bookmark: OtherSiteBookmarkType) => void;
+    onEdit?: (bookmark: OtherSiteBookmarkType) => void;
+    onDelete?: (bookmark: OtherSiteBookmarkType) => void;
 }
 
 const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
@@ -41,6 +41,8 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
     };
 
     const onSubmit = useCallback(() => {
+        if (!onEdit) return;
+
         const newBookmark = {
             ...bookmark,
             noteText,
@@ -75,12 +77,16 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
     return (
         <div key={`rabbit-bookmark-${bookmark.selectedText}`} className={cls.otherBookmark}>
             <div className={cls.floatingButtons}>
-                <button className={cls.button} onClick={changeEditableStatus}>
-                    Edit
-                </button>
-                <button className={cls.button} onClick={() => onDelete(bookmark)}>
-                    <DeleteIcon className={cls.icon} />
-                </button>
+                {onEdit &&
+                    <button className={cls.button} onClick={changeEditableStatus}>
+                        Edit
+                    </button>
+                }
+                {onDelete &&
+                    <button className={cls.button} onClick={() => onDelete(bookmark)}>
+                        <DeleteIcon className={cls.icon} />
+                    </button>
+                }
             </div>
             <textarea ref={selectedTextRef} disabled name={'selectedText'} className={cls.selectedText} onChange={resizeTextareaOnChange} value={bookmark.selectedText} />
             <textarea ref={noteTextRef} disabled={!isEdit} name={'noteText'} className={cls.noteText} onChange={onNoteTextChange} value={noteText} autoFocus />

@@ -1,0 +1,25 @@
+.wrapper {
+
+}
+
+.pageTitleVideo {
+	color: red;
+}
+
+.pageTitleText {
+	color: greenyellow;
+	cursor: pointer;
+}
+
+.pageLink {
+	color: dodgerblue;
+	cursor: pointer;
+}
+
+.bookmarksList {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	margin-bottom: 5px;
+	border-bottom: 2px solid green;
+}

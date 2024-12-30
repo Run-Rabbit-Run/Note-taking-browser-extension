@@ -6,6 +6,7 @@ const BUTTON_WIDTH = 67;
 (() => {
     let youtubeLeftControls, youtubePlayer: HTMLVideoElement;
     let currentVideoId = '';
+    let currentVideoUrl = '';
     let currentOtherSiteUrl = '';
     let videoBookmarks: Array<VideoBookmarkType> = [];
     let otherSiteBookmarks: Array<OtherSiteBookmarkType> = [];
@@ -21,8 +22,6 @@ const BUTTON_WIDTH = 67;
     const fetchOtherSiteBookmarks = (): Promise<OtherSiteBookmarkType[]> => {
         return new Promise((resolve) => {
             chrome.storage.sync.get([currentOtherSiteUrl], (result) => {
-                console.log('fetchOtherSiteBookmarks currentOtherSiteUrl => ', currentOtherSiteUrl);
-                console.log('fetchOtherSiteBookmarks result => ', result);
                 resolve(result[currentOtherSiteUrl] ? JSON.parse(result[currentOtherSiteUrl]) : []);
             });
         });
@@ -41,7 +40,10 @@ const BUTTON_WIDTH = 67;
         const videoBookmark: VideoBookmarkType = {
             time: currentTime,
             desc: "Bookmark at " + getTime(currentTime),
+            pageUrl: currentVideoUrl,
+            pageTitle: document.title,
         };
+
         const newBookmarks = [...videoBookmarks, videoBookmark];
 
         chrome.storage.sync.set({
@@ -54,6 +56,8 @@ const BUTTON_WIDTH = 67;
         const bookmark: OtherSiteBookmarkType = {
             selectedText: selectedText,
             noteText: noteText,
+            pageUrl: currentOtherSiteUrl,
+            pageTitle: document.title,
         };
         const newBookmarks = [...otherSiteBookmarks, bookmark];
 
@@ -150,8 +154,9 @@ const BUTTON_WIDTH = 67;
         const { type } = obj;
 
         if (type === 'VIDEO_ID') {
-            const { videoId } = obj;
+            const { videoId, videoUrl } = obj;
             currentVideoId = videoId;
+            currentVideoUrl = videoUrl;
             newVideoLoaded();
         } else if (type === 'OTHER_SITE') {
             const { otherUrl } = obj;

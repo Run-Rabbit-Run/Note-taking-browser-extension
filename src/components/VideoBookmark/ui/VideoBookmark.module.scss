@@ -1,0 +1,25 @@
+.videoBookmark {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 5px;
+	width: 100%;
+}
+
+.buttonWrapper {
+	display: flex;
+	gap: 5px;
+}
+
+.button {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0;
+}
+
+.icon {
+	width: 20px;
+	height: 20px;
+	color: #747bff;
+}

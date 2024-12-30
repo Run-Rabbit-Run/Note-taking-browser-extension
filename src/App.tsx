@@ -3,9 +3,9 @@ import { getActiveTab } from './helpers/utils.ts';
 import Tab = chrome.tabs.Tab;
 import { OtherSiteBookmarkType, VideoBookmarkType } from './types/types.ts';
 import cls from './App.module.scss';
-import PlayVideoIcon from './assets/play_video.svg?react';
-import DeleteIcon from './assets/delete.svg?react';
-import TextBookmark from './components/TextBookmark/ui/TextBookmark.tsx';
+import { TextBookmark } from './components/TextBookmark';
+import { AllNotes } from './components/AllNotes';
+import VideoBookmark from './components/VideoBookmark/ui/VideoBookmark.tsx';
 
 // const test = [
 //     {
@@ -31,6 +31,7 @@ const App = () => {
     const [videoBookmarks, setVideoBookmarks] = useState<VideoBookmarkType[]>([]);
     const [otherSiteBookmarks, setOtherSiteBookmarks] = useState<OtherSiteBookmarkType[]>([]);
     const [text, setText] = useState('');
+    const [isShowAllNotes, setIsShowAllNotes] = useState(false);
     const getBookmarksFromStorage = async () => {
         const tab = await getActiveTab() || activeTab;
         setActiveTab(tab);
@@ -82,7 +83,7 @@ const App = () => {
     }, [activeTab?.id]);
 
     const onEditOtherBookmark = useCallback(async (bookmark: OtherSiteBookmarkType) => {
-        const { selectedText, noteText } = bookmark;
+        const { selectedText, noteText, pageTitle, pageUrl } = bookmark;
 
         const editedBookmark = otherSiteBookmarks
             .find((bookmark) => bookmark.selectedText === selectedText);
@@ -92,6 +93,8 @@ const App = () => {
             const newBookmark = {
                 selectedText,
                 noteText,
+                pageTitle,
+                pageUrl,
             };
             const editedBookmarkIndex = otherSiteBookmarks
                 .findIndex((bookmark) => bookmark.selectedText === selectedText);
@@ -113,7 +116,6 @@ const App = () => {
             return <div>No other bookmarks</div>;
         }
 
-        console.log('renderOtherBookmarks otherSiteBookmarks => ', otherSiteBookmarks);
         const createText = otherSiteBookmarks.reduce((acc, { selectedText, noteText }) => {
             const selected = '# Selected text \n\n' + selectedText + '\n\n';
             const note = '# Note text \n\n' + noteText + '\n\n';
@@ -142,19 +144,11 @@ const App = () => {
         return (
             <div className={cls.videoBookmarksList}>
                 {videoBookmarks.map((bookmark) => (
-                    <div key={`rabbit-bookmark-${bookmark.time}`} className={cls.videoBookmark}>
-                        <p>
-                            {bookmark.desc} - {bookmark.time}
-                        </p>
-                        <div className={cls.buttonWrapper}>
-                            <button className={cls.button} onClick={() => onPlayBookmark(bookmark)}>
-                                <PlayVideoIcon className={cls.icon} />
-                            </button>
-                            <button className={cls.button} onClick={() => onDeleteBookmark(bookmark)}>
-                                <DeleteIcon className={cls.icon} />
-                            </button>
-                        </div>
-                    </div>
+                    <VideoBookmark
+                        bookmark={bookmark}
+                        onPlayBookmark={onPlayBookmark}
+                        onDeleteBookmark={onDeleteBookmark}
+                    />
                 ))}
             </div>
         );
@@ -162,11 +156,17 @@ const App = () => {
 
     return (
         <div className={cls.app}>
-            {text}
-            <div>
-                {renderVideoBookmarks}
-                {renderOtherBookmarks}
-            </div>
+            {isShowAllNotes && <AllNotes />}
+            {!isShowAllNotes && <>
+                {text}
+                <div className={cls.bookmarkList}>
+                    {renderVideoBookmarks}
+                    {renderOtherBookmarks}
+                </div>
+                <div>
+                    <button onClick={() => setIsShowAllNotes(true)}>Show all notes</button>
+                </div>
+            </>}
         </div>
     );
 };
