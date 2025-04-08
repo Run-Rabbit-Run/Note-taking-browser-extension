@@ -1,7 +1,7 @@
 import { OtherSiteBookmarkType, VideoBookmarkType } from '../types/types.ts';
 import { createNoteEditorPopup } from '../helpers/createElements/createNoteEditorPopup.ts';
 
-const BUTTON_WIDTH = 67;
+const BUTTON_WIDTH = 25;
 
 (() => {
     let youtubeLeftControls, youtubePlayer: HTMLVideoElement;
@@ -46,7 +46,7 @@ const BUTTON_WIDTH = 67;
 
         const newBookmarks = [...videoBookmarks, videoBookmark];
 
-        chrome.storage.sync.set({
+        await chrome.storage.sync.set({
             [currentVideoId]: JSON.stringify(newBookmarks.sort((a, b) => a.time - b.time))
         });
     };
@@ -61,7 +61,7 @@ const BUTTON_WIDTH = 67;
         };
         const newBookmarks = [...otherSiteBookmarks, bookmark];
 
-        chrome.storage.sync.set({
+        await chrome.storage.sync.set({
             [currentOtherSiteUrl]: JSON.stringify(newBookmarks)
         });
     };
@@ -98,8 +98,9 @@ const BUTTON_WIDTH = 67;
 
         document.addEventListener("selectionchange", () => {
             const selectedString = document.getSelection()?.toString();
-
-            if (selectedString && selectedString.length > 0) {
+            const isButtonExist = !!document.querySelector('#RabbitNoteTakingApp');
+            console.log('boof => ', );
+            if (selectedString && selectedString.length > 0 && !isButtonExist) {
                 const selection = document.getSelection();
                 if (selection) {
                     const range = selection.getRangeAt(0);
@@ -108,19 +109,19 @@ const BUTTON_WIDTH = 67;
                     // delete old button
                     removeSelectionBtn();
 
-                    const selectionBtn = document.createElement('button');
+                    const selectionBtn = document.createElement('img');
                     selectionBtn.id = 'RabbitNoteTakingApp';
-                    selectionBtn.textContent = 'Add Note';
                     selectionBtn.style.position = 'absolute';
                     selectionBtn.style.zIndex = '1000';
-                    selectionBtn.style.padding = '8px';
-                    selectionBtn.style.fontSize = '12px';
                     selectionBtn.style.backgroundColor = '#ff5722';
+                    selectionBtn.style.backgroundImage = `url(${chrome.runtime.getURL('edit.png')})`;
+                    selectionBtn.style.backgroundSize = 'cover';
                     selectionBtn.style.color = '#fff';
                     selectionBtn.style.border = 'none';
-                    selectionBtn.style.borderRadius = '5px';
+                    selectionBtn.style.borderRadius = '8px';
                     selectionBtn.style.cursor = 'pointer';
                     selectionBtn.style.width = `${BUTTON_WIDTH}px`;
+                    selectionBtn.style.height = `${BUTTON_WIDTH}px`;
 
                     const topPosition = rect.top + window.scrollY - 40; // 40px над выделением
                     const leftPosition =  rect.left + window.scrollX + (rect.width / 2) - (BUTTON_WIDTH / 2); // Центр по горизонтали

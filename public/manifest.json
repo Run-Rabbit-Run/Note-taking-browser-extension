@@ -22,6 +22,10 @@
         {
             "resources": ["note-taking.png"],
             "matches": ["<all_urls>"]
+        },
+        {
+            "resources": ["edit.png"],
+            "matches": ["<all_urls>"]
         }
     ]
 }

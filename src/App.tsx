@@ -117,9 +117,10 @@ const App = () => {
         }
 
         const createText = otherSiteBookmarks.reduce((acc, { selectedText, noteText }) => {
-            const selected = '# Selected text \n\n' + selectedText + '\n\n';
-            const note = '# Note text \n\n' + noteText + '\n\n';
-            return acc + selected + note;
+            const separator = acc === '' ? '' : '---\n\n';
+            const selected = '# Selected text\n' + selectedText + '\n\n';
+            const note = '# Note text\n' + noteText + '\n\n';
+            return acc + separator + selected + note;
         }, '');
         const blobText = new Blob([createText], { type: "text/markdown" });
         const url = URL.createObjectURL(blobText);
