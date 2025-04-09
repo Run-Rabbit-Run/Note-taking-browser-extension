@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getActiveTab } from './helpers/utils.ts';
-import Tab = chrome.tabs.Tab;
+import { createDownloadBookmarksLink, getActiveTab } from './helpers/utils.ts';
 import { OtherSiteBookmarkType, VideoBookmarkType } from './types/types.ts';
 import cls from './App.module.scss';
 import { TextBookmark } from './components/TextBookmark';
 import { AllNotes } from './components/AllNotes';
 import VideoBookmark from './components/VideoBookmark/ui/VideoBookmark.tsx';
+import Tab = chrome.tabs.Tab;
 
 // const test = [
 //     {
@@ -32,8 +32,9 @@ const App = () => {
     const [otherSiteBookmarks, setOtherSiteBookmarks] = useState<OtherSiteBookmarkType[]>([]);
     const [text, setText] = useState('');
     const [isShowAllNotes, setIsShowAllNotes] = useState(false);
+
     const getBookmarksFromStorage = async () => {
-        const tab = await getActiveTab() || activeTab;
+        const tab = (await getActiveTab()) || activeTab;
         setActiveTab(tab);
         const queryParameters = tab?.url?.split('?')[1];
         const urlParameters = new URLSearchParams(queryParameters);
@@ -61,51 +62,73 @@ const App = () => {
         }
     };
 
-    const onPlayBookmark = useCallback((bookmark: VideoBookmarkType) => {
-        chrome.tabs.sendMessage(activeTab?.id || 0, {
-            type: "PLAY_VIDEO_BOOKMARK",
-            value: bookmark.time,
-        }).catch((error) => console.error(error));
-    }, [activeTab?.id]);
+    const onPlayBookmark = useCallback(
+        (bookmark: VideoBookmarkType) => {
+            chrome.tabs
+                .sendMessage(activeTab?.id || 0, {
+                    type: 'PLAY_VIDEO_BOOKMARK',
+                    value: bookmark.time,
+                })
+                .catch((error) => console.error(error));
+        },
+        [activeTab?.id],
+    );
 
-    const onDeleteBookmark = useCallback((bookmark: VideoBookmarkType) => {
-        chrome.tabs.sendMessage(activeTab?.id || 0, {
-            type: "DELETE_ALL_VIDEO_BOOKMARKS",
-            value: bookmark.time,
-        }, getBookmarksFromStorage);
-    }, [activeTab?.id]);
+    const onDeleteBookmark = useCallback(
+        (bookmark: VideoBookmarkType) => {
+            chrome.tabs.sendMessage(
+                activeTab?.id || 0,
+                {
+                    type: 'DELETE_ALL_VIDEO_BOOKMARKS',
+                    value: bookmark.time,
+                },
+                getBookmarksFromStorage,
+            );
+        },
+        [activeTab?.id],
+    );
 
-    const onDeleteOtherBookmark = useCallback((bookmark: OtherSiteBookmarkType) => {
-        chrome.tabs.sendMessage(activeTab?.id || 0, {
-            type: "DELETE_OTHER_SITE_BOOKMARK",
-            value: bookmark.selectedText,
-        }, getBookmarksFromStorage);
-    }, [activeTab?.id]);
+    const onDeleteOtherBookmark = useCallback(
+        (bookmark: OtherSiteBookmarkType) => {
+            chrome.tabs.sendMessage(
+                activeTab?.id || 0,
+                {
+                    type: 'DELETE_OTHER_SITE_BOOKMARK',
+                    value: bookmark.selectedText,
+                },
+                getBookmarksFromStorage,
+            );
+        },
+        [activeTab?.id],
+    );
 
-    const onEditOtherBookmark = useCallback(async (bookmark: OtherSiteBookmarkType) => {
-        const { selectedText, noteText, pageTitle, pageUrl } = bookmark;
+    const onEditOtherBookmark = useCallback(
+        async (bookmark: OtherSiteBookmarkType) => {
+            const { selectedText, noteText, pageTitle, pageUrl } = bookmark;
 
-        const editedBookmark = otherSiteBookmarks
-            .find((bookmark) => bookmark.selectedText === selectedText);
+            const editedBookmark = otherSiteBookmarks.find((bookmark) => bookmark.selectedText === selectedText);
 
-        if (editedBookmark) {
-            editedBookmark.noteText = noteText;
-            const newBookmark = {
-                selectedText,
-                noteText,
-                pageTitle,
-                pageUrl,
-            };
-            const editedBookmarkIndex = otherSiteBookmarks
-                .findIndex((bookmark) => bookmark.selectedText === selectedText);
+            if (editedBookmark) {
+                editedBookmark.noteText = noteText;
+                const newBookmark = {
+                    selectedText,
+                    noteText,
+                    pageTitle,
+                    pageUrl,
+                };
+                const editedBookmarkIndex = otherSiteBookmarks.findIndex(
+                    (bookmark) => bookmark.selectedText === selectedText,
+                );
 
-            otherSiteBookmarks[editedBookmarkIndex] = newBookmark;
+                otherSiteBookmarks[editedBookmarkIndex] = newBookmark;
 
-            if (activeTab?.url) {
-                await chrome.storage.sync.set({[activeTab?.url]: JSON.stringify(otherSiteBookmarks)});
+                if (activeTab?.url) {
+                    await chrome.storage.sync.set({ [activeTab?.url]: JSON.stringify(otherSiteBookmarks) });
+                }
             }
-        }
-    }, [activeTab, otherSiteBookmarks]);
+        },
+        [activeTab, otherSiteBookmarks],
+    );
 
     useEffect(() => {
         getBookmarksFromStorage().catch(console.error);
@@ -116,14 +139,7 @@ const App = () => {
             return <div>No other bookmarks</div>;
         }
 
-        const createText = otherSiteBookmarks.reduce((acc, { selectedText, noteText }) => {
-            const separator = acc === '' ? '' : '---\n\n';
-            const selected = '# Selected text\n' + selectedText + '\n\n';
-            const note = '# Note text\n' + noteText + '\n\n';
-            return acc + separator + selected + note;
-        }, '');
-        const blobText = new Blob([createText], { type: "text/markdown" });
-        const url = URL.createObjectURL(blobText);
+        const url = createDownloadBookmarksLink(otherSiteBookmarks, activeTab?.url);
 
         return (
             <div className={cls.otherBookmarksList}>
@@ -158,16 +174,18 @@ const App = () => {
     return (
         <div className={cls.app}>
             {isShowAllNotes && <AllNotes />}
-            {!isShowAllNotes && <>
-                {text}
-                <div className={cls.bookmarkList}>
-                    {renderVideoBookmarks}
-                    {renderOtherBookmarks}
-                </div>
-                <div>
-                    <button onClick={() => setIsShowAllNotes(true)}>Show all notes</button>
-                </div>
-            </>}
+            {!isShowAllNotes && (
+                <>
+                    {text}
+                    <div className={cls.bookmarkList}>
+                        {renderVideoBookmarks}
+                        {renderOtherBookmarks}
+                    </div>
+                    <div>
+                        <button onClick={() => setIsShowAllNotes(true)}>Show all notes</button>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
