@@ -99,7 +99,7 @@ const BUTTON_WIDTH = 25;
         document.addEventListener("selectionchange", () => {
             const selectedString = document.getSelection()?.toString();
             const isButtonExist = !!document.querySelector('#RabbitNoteTakingApp');
-            console.log('boof => ', );
+
             if (selectedString && selectedString.length > 0 && !isButtonExist) {
                 const selection = document.getSelection();
                 if (selection) {
@@ -122,6 +122,7 @@ const BUTTON_WIDTH = 25;
                     selectionBtn.style.cursor = 'pointer';
                     selectionBtn.style.width = `${BUTTON_WIDTH}px`;
                     selectionBtn.style.height = `${BUTTON_WIDTH}px`;
+                    selectionBtn.style.opacity = `0.2`;
 
                     const topPosition = rect.top + window.scrollY - 40; // 40px над выделением
                     const leftPosition =  rect.left + window.scrollX + (rect.width / 2) - (BUTTON_WIDTH / 2); // Центр по горизонтали
