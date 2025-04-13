@@ -12,16 +12,28 @@ export const createDownloadBookmarksLink = (bookmarks: OtherSiteBookmarkType[], 
         return '';
     }
 
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0
+    const day = String(today.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    const createProperties = `---\ntags:\n  - from_site\nсоздал заметку: ${formattedDate}\nLink: ${tabUrl}\n---\n`;
+
     const createText = bookmarks.reduce((acc, { selectedText, noteText }) => {
+        const isCite = noteText.trim() === '';
         const separator = acc === '' ? '' : '---\n\n';
-        const selected = '# Selected text\n' + selectedText + '\n\n';
-        const note = '# Note text\n' + noteText + '\n\n';
-        return acc + separator + selected + note;
+        const selected = `${selectedText
+            .split(/\n+/)
+            .map((paragraph) => `> ${paragraph}`)
+            .join('\n')}\n\n`;
+        const note = noteText + '\n\n';
+        const text = isCite ? selected : selected + note;
+
+        return acc + separator + text;
     }, '');
 
-    const createLink = `Link: ${tabUrl}\n\n`;
-
-    const resultText = createLink + createText;
+    const resultText = createProperties + createText;
 
     const blobText = new Blob([resultText], { type: 'text/markdown' });
 
