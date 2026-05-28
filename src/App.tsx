@@ -141,12 +141,21 @@ const App = () => {
 
         const url = createDownloadBookmarksLink(otherSiteBookmarks, activeTab?.url);
 
+        const download = () => {
+            chrome.downloads.download({
+                url: url,
+                filename: 'Obsidian/фай8л.md', // Предложит сохранить в подпапку Obsidian
+                saveAs: true // Покажет диалог сохранения
+            });
+        }
+
         return (
             <div className={cls.otherBookmarksList}>
                 {otherSiteBookmarks.map((bookmark) => (
                     <TextBookmark bookmark={bookmark} onEdit={onEditOtherBookmark} onDelete={onDeleteOtherBookmark} />
                 ))}
-                <a href={url} download={`${activeTab?.title}.md`}>
+                {/*<a href={url} download={`${activeTab?.title}.md`}>*/}
+                <a download={`${activeTab?.title}.md`} onClick={download}>
                     Export to MD
                 </a>
             </div>

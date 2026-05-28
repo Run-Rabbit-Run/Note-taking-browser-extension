@@ -7,7 +7,7 @@ export const getActiveTab = async () => {
     return tab;
 };
 
-export const createDownloadBookmarksLink = (bookmarks: OtherSiteBookmarkType[], tabUrl?: string): string => {
+export const createDownloadBookmarksLink = (bookmarks: OtherSiteBookmarkType[], tabUrl?: string, returnMode: 'url' | 'content' = 'content'): string => {
     if (!bookmarks || bookmarks.length === 0) {
         return '';
     }
@@ -34,6 +34,8 @@ export const createDownloadBookmarksLink = (bookmarks: OtherSiteBookmarkType[], 
     }, '');
 
     const resultText = createProperties + createText;
+
+    if (returnMode === 'content') return resultText;
 
     const blobText = new Blob([resultText], { type: 'text/markdown' });
 

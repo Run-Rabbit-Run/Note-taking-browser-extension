@@ -1,10 +1,10 @@
 import cls from './AllNotes.module.scss';
 import { useEffect, useState } from 'react';
-import { createDownloadBookmarksLink, getActiveTab } from '../../../helpers/utils.ts';
+import { getActiveTab } from '../../../helpers/utils.ts';
 import { OtherSiteBookmarkType, VideoBookmarkType } from '../../../types/types.ts';
 import { TextBookmark } from '../../TextBookmark';
 import { VideoBookmark } from '../../VideoBookmark';
-import { isOtherSiteBookmarks, isVideoBookmark } from '../../../helpers/typeUtils.ts';
+import { isVideoBookmark } from '../../../helpers/typeUtils.ts';
 import Tab = chrome.tabs.Tab;
 
 const AllNotes = () => {
@@ -30,22 +30,6 @@ const AllNotes = () => {
         });
     };
 
-    const onDownloadText = () => {
-        Object.values(store).map((bookmarks) => {
-            if (isOtherSiteBookmarks(bookmarks)) {
-                const url = createDownloadBookmarksLink(bookmarks, bookmarks[0].pageUrl);
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', `${bookmarks[0].pageTitle}.md`);
-                link.setAttribute('target', '_blank');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                link.remove();
-                URL.revokeObjectURL(url);
-            }
-        });
-    };
 
     useEffect(() => {
         getBookmarksFromStorage().catch(console.error);
@@ -79,7 +63,6 @@ const AllNotes = () => {
                     </details>
                 );
             })}
-            <button onClick={onDownloadText}>Download text</button>
         </div>
     );
 };
