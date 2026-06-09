@@ -40,6 +40,7 @@ const BUTTON_WIDTH = 25;
         const videoBookmark: VideoBookmarkType = {
             time: currentTime,
             desc: "Bookmark at " + getTime(currentTime),
+            noteText: '',
             pageUrl: currentVideoUrl,
             pageTitle: document.title,
         };

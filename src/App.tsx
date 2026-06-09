@@ -28,6 +28,7 @@ import Tab = chrome.tabs.Tab;
 
 const App = () => {
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
+    const [currentVideoId, setCurrentVideoId] = useState('');
     const [videoBookmarks, setVideoBookmarks] = useState<VideoBookmarkType[]>([]);
     const [otherSiteBookmarks, setOtherSiteBookmarks] = useState<OtherSiteBookmarkType[]>([]);
     const [text, setText] = useState('');
@@ -41,6 +42,7 @@ const App = () => {
         const currentVideoId = urlParameters.get('v');
 
         if (tab?.url?.includes('youtube.com/watch') && currentVideoId) {
+            setCurrentVideoId(currentVideoId);
             setText(tab?.title || 'Where is my title?');
             chrome.storage.sync.get([currentVideoId], (data) => {
                 const currentVideoBookmarks = data[currentVideoId] ? JSON.parse(data[currentVideoId]) : [];
@@ -48,6 +50,7 @@ const App = () => {
                 setVideoBookmarks(currentVideoBookmarks);
             });
         } else {
+            setCurrentVideoId('');
             setText('This is not a youtube video');
 
             chrome.storage.sync.get([tab?.url], (data) => {
@@ -75,17 +78,35 @@ const App = () => {
     );
 
     const onDeleteBookmark = useCallback(
-        (bookmark: VideoBookmarkType) => {
-            chrome.tabs.sendMessage(
-                activeTab?.id || 0,
-                {
-                    type: 'DELETE_ALL_VIDEO_BOOKMARKS',
-                    value: bookmark.time,
-                },
-                getBookmarksFromStorage,
-            );
+        async (bookmark: VideoBookmarkType) => {
+            const updatedBookmarks = videoBookmarks.filter((currentBookmark) => currentBookmark.time !== bookmark.time);
+
+            setVideoBookmarks(updatedBookmarks);
+
+            if (currentVideoId) {
+                await chrome.storage.sync.set({ [currentVideoId]: JSON.stringify(updatedBookmarks) });
+            }
         },
-        [activeTab?.id],
+        [currentVideoId, videoBookmarks],
+    );
+
+    const onEditVideoBookmark = useCallback(
+        async (bookmark: VideoBookmarkType) => {
+            if (!currentVideoId) return;
+
+            const updatedBookmarks = videoBookmarks.map((currentBookmark) => {
+                if (currentBookmark.time !== bookmark.time) return currentBookmark;
+
+                return {
+                    ...currentBookmark,
+                    ...bookmark,
+                };
+            });
+
+            setVideoBookmarks(updatedBookmarks);
+            await chrome.storage.sync.set({ [currentVideoId]: JSON.stringify(updatedBookmarks) });
+        },
+        [currentVideoId, videoBookmarks],
     );
 
     const onDeleteOtherBookmark = useCallback(
@@ -178,13 +199,14 @@ const App = () => {
                     <VideoBookmark
                         key={bookmark.time}
                         bookmark={bookmark}
+                        onEditBookmark={onEditVideoBookmark}
                         onPlayBookmark={onPlayBookmark}
                         onDeleteBookmark={onDeleteBookmark}
                     />
                 ))}
             </div>
         );
-    }, [onDeleteBookmark, onPlayBookmark, videoBookmarks]);
+    }, [onDeleteBookmark, onEditVideoBookmark, onPlayBookmark, videoBookmarks]);
 
     return (
         <div className={cls.app}>

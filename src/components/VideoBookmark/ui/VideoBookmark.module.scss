@@ -1,7 +1,7 @@
 .videoBookmark {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
     width: 100%;
     padding: 10px;
@@ -14,6 +14,19 @@
 
 .videoBookmark:hover {
     border-color: rgba(55, 255, 139, 0.54);
+}
+
+.bookmarkHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.timestamp {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .buttonWrapper {
@@ -38,6 +51,69 @@
 }
 
 .button:hover {
+    color: #051008;
+    background-color: #37ff8b;
+}
+
+.noteText {
+    margin: 0;
+    padding: 8px 10px;
+    overflow-wrap: anywhere;
+    color: #a8f7c2;
+    white-space: pre-wrap;
+    background-color: rgba(0, 0, 0, 0.34);
+    border: 1px solid rgba(55, 255, 139, 0.24);
+    border-radius: 6px;
+}
+
+.noteEditor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.noteTextarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 9px 10px;
+    overflow: hidden;
+    color: #eafff1;
+    font: inherit;
+    resize: vertical;
+    scrollbar-color: rgba(55, 255, 139, 0.7) rgba(0, 0, 0, 0.28);
+    background-color: rgba(0, 0, 0, 0.42);
+    border: 1px solid rgba(55, 255, 139, 0.3);
+    border-radius: 6px;
+    outline: none;
+    caret-color: #37ff8b;
+}
+
+.noteTextarea:focus {
+    border-color: rgba(55, 255, 139, 0.75);
+    box-shadow:
+        0 0 18px rgba(55, 255, 139, 0.2),
+        inset 0 0 16px rgba(55, 255, 139, 0.1);
+}
+
+.saveButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 7px 10px;
+    color: #37ff8b;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    background-color: rgba(55, 255, 139, 0.08);
+    border: 1px solid rgba(55, 255, 139, 0.55);
+    border-radius: 5px;
+    box-shadow: inset 0 0 12px rgba(55, 255, 139, 0.08);
+}
+
+.saveButton:hover {
     color: #051008;
     background-color: #37ff8b;
 }

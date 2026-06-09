@@ -1,6 +1,7 @@
 export type VideoBookmarkType = {
     time: number,
     desc: string,
+    noteText: string,
     pageUrl: string,
     pageTitle: string,
 }
