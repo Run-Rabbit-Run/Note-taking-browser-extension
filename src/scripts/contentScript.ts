@@ -3,6 +3,21 @@ import { createNoteEditorPopup } from '../helpers/createElements/createNoteEdito
 
 const BUTTON_WIDTH = 25;
 
+type TextPosition = {
+    node: Text;
+    offset: number;
+};
+
+type TextMap = {
+    normalizedText: string;
+    charMap: TextPosition[];
+};
+
+type TextMatch = {
+    range: Range;
+    index: number;
+};
+
 (() => {
     let youtubeLeftControls, youtubePlayer: HTMLVideoElement;
     let currentVideoId = '';
@@ -29,9 +44,163 @@ const BUTTON_WIDTH = 25;
 
     const openNoteEditor = (
         selectedText: string,
-        addNewOtherSiteBookmark: (selectedText: string, noteText: string) => void,
+        selectedTextPosition: number | undefined,
+        addNewOtherSiteBookmark: (
+            selectedText: string,
+            noteText: string,
+            selectedTextPosition?: number,
+        ) => void,
     ) => {
-        createNoteEditorPopup(selectedText, addNewOtherSiteBookmark);
+        createNoteEditorPopup(selectedText, (currentSelectedText, noteText) => {
+            addNewOtherSiteBookmark(currentSelectedText, noteText, selectedTextPosition);
+        });
+    };
+
+    const normalizeText = (text: string) => text.replace(/\s+/g, ' ').trim();
+
+    const shouldSkipTextNode = (node: Node) => {
+        const parentElement = node.parentElement;
+
+        if (!parentElement) return true;
+        if (!node.textContent?.trim()) return true;
+
+        return Boolean(
+            parentElement.closest('script, style, noscript, textarea, input, select, option, #RabbitNoteTakingApp'),
+        );
+    };
+
+    const createTextMap = (): TextMap => {
+        let normalizedText = '';
+        const charMap: TextPosition[] = [];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+                return shouldSkipTextNode(node) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+            },
+        });
+
+        while (walker.nextNode()) {
+            const node = walker.currentNode as Text;
+            const textContent = node.textContent || '';
+
+            for (let offset = 0; offset < textContent.length; offset++) {
+                const char = textContent[offset];
+                const isSpace = /\s/.test(char);
+
+                if (isSpace && normalizedText[normalizedText.length - 1] !== ' ') {
+                    normalizedText += ' ';
+                    charMap.push({ node, offset });
+                } else if (!isSpace) {
+                    normalizedText += char;
+                    charMap.push({ node, offset });
+                }
+            }
+        }
+
+        return { normalizedText, charMap };
+    };
+
+    const createRangeFromTextMap = (charMap: TextPosition[], startIndex: number, length: number) => {
+        const start = charMap[startIndex];
+        const end = charMap[startIndex + length - 1];
+
+        if (!start || !end) return null;
+
+        const range = document.createRange();
+
+        range.setStart(start.node, start.offset);
+        range.setEnd(end.node, end.offset + 1);
+
+        return range;
+    };
+
+    const getTextMatches = (selectedText: string): TextMatch[] => {
+        const targetText = normalizeText(selectedText);
+
+        if (!targetText) return [];
+
+        const { normalizedText, charMap } = createTextMap();
+        const sourceText = normalizedText.toLocaleLowerCase();
+        const searchText = targetText.toLocaleLowerCase();
+        const matches: TextMatch[] = [];
+        let matchIndex = sourceText.indexOf(searchText);
+
+        while (matchIndex !== -1) {
+            const range = createRangeFromTextMap(charMap, matchIndex, searchText.length);
+
+            if (range) {
+                matches.push({ range, index: matchIndex });
+            }
+
+            matchIndex = sourceText.indexOf(searchText, matchIndex + searchText.length);
+        }
+
+        return matches;
+    };
+
+    const getRangeDistance = (sourceRect: DOMRect, targetRange: Range) => {
+        const targetRect = targetRange.getBoundingClientRect();
+
+        return Math.abs(sourceRect.top - targetRect.top) + Math.abs(sourceRect.left - targetRect.left);
+    };
+
+    const getSelectedTextPosition = (selectedText: string) => {
+        const selection = document.getSelection();
+
+        if (!selection || selection.rangeCount === 0) return undefined;
+
+        const selectionRect = selection.getRangeAt(0).getBoundingClientRect();
+        const matches = getTextMatches(selectedText);
+
+        if (!matches.length) return undefined;
+
+        const closestMatch = matches.reduce((currentMatch, nextMatch) => {
+            const currentDistance = getRangeDistance(selectionRect, currentMatch.range);
+            const nextDistance = getRangeDistance(selectionRect, nextMatch.range);
+
+            return nextDistance < currentDistance ? nextMatch : currentMatch;
+        });
+
+        return closestMatch.index;
+    };
+
+    const findTextMatch = (selectedText: string, selectedTextPosition?: number) => {
+        const matches = getTextMatches(selectedText);
+
+        if (!matches.length) return null;
+
+        if (typeof selectedTextPosition !== 'number') {
+            return matches[0];
+        }
+
+        return matches.reduce((currentMatch, nextMatch) => {
+            const currentDistance = Math.abs(currentMatch.index - selectedTextPosition);
+            const nextDistance = Math.abs(nextMatch.index - selectedTextPosition);
+
+            return nextDistance < currentDistance ? nextMatch : currentMatch;
+        });
+    };
+
+    const scrollToOtherSiteBookmark = (selectedText: string, selectedTextPosition?: number) => {
+        const match = findTextMatch(selectedText, selectedTextPosition);
+
+        if (!match) return false;
+
+        const selection = document.getSelection();
+        const rect = match.range.getBoundingClientRect();
+
+        selection?.removeAllRanges();
+        selection?.addRange(match.range);
+
+        if (rect.width === 0 && rect.height === 0) {
+            match.range.startContainer.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            window.scrollTo({
+                top: rect.top + window.scrollY - window.innerHeight / 3,
+                behavior: 'smooth',
+            });
+        }
+
+        return true;
     };
 
     const addNewVideoBookmark = async () => {
@@ -52,10 +221,15 @@ const BUTTON_WIDTH = 25;
         });
     };
 
-    const addNewOtherSiteBookmark = async (selectedText: string, noteText: string) => {
+    const addNewOtherSiteBookmark = async (
+        selectedText: string,
+        noteText: string,
+        selectedTextPosition?: number,
+    ) => {
         otherSiteBookmarks = await fetchOtherSiteBookmarks();
         const bookmark: OtherSiteBookmarkType = {
             selectedText: selectedText,
+            selectedTextPosition,
             noteText: noteText,
             pageUrl: currentOtherSiteUrl,
             pageTitle: document.title,
@@ -106,6 +280,7 @@ const BUTTON_WIDTH = 25;
                 if (selection) {
                     const range = selection.getRangeAt(0);
                     const rect = range.getBoundingClientRect();
+                    const selectedTextPosition = getSelectedTextPosition(selectedString);
 
                     // delete old button
                     removeSelectionBtn();
@@ -140,7 +315,7 @@ const BUTTON_WIDTH = 25;
                     selectionBtn.addEventListener('click', (event) => {
                         event.stopPropagation();
                         // chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
-                        openNoteEditor(selectedString, addNewOtherSiteBookmark);
+                        openNoteEditor(selectedString, selectedTextPosition, addNewOtherSiteBookmark);
 
                         // delete after click
                         removeSelectionBtn();
@@ -168,6 +343,11 @@ const BUTTON_WIDTH = 25;
         } else if (type === 'PLAY_VIDEO_BOOKMARK') {
             const { value } = obj;
             youtubePlayer.currentTime = value;
+        } else if (type === 'SCROLL_TO_OTHER_SITE_BOOKMARK') {
+            const { value, selectedTextPosition } = obj;
+            const isFound = scrollToOtherSiteBookmark(value, selectedTextPosition);
+
+            response({ isFound });
         } else if (type === 'DELETE_ALL_VIDEO_BOOKMARKS') {
             const { value } = obj;
             videoBookmarks = videoBookmarks.filter((bookmark) => bookmark.time !== value);

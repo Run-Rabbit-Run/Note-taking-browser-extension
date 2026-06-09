@@ -7,9 +7,10 @@ export interface TextBookmarkProps {
     bookmark: OtherSiteBookmarkType;
     onEdit?: (bookmark: OtherSiteBookmarkType) => void;
     onDelete?: (bookmark: OtherSiteBookmarkType) => void;
+    onOpen?: (bookmark: OtherSiteBookmarkType) => void;
 }
 
-const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
+const TextBookmark = ({ bookmark, onEdit, onDelete, onOpen }: TextBookmarkProps) => {
     const selectedTextRef = useRef<HTMLTextAreaElement>(null);
     const noteTextRef = useRef<HTMLTextAreaElement>(null);
     const [isEdit, setIsEdit] = useState<boolean>(false);
@@ -31,12 +32,12 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
 
     const changeEditableStatus = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        e.stopPropagation();
 
         setIsEdit(!isEdit);
 
         if (noteTextRef && noteTextRef.current) {
             noteTextRef.current.focus();
-            return false;
         }
     };
 
@@ -52,11 +53,24 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
         setIsEdit(false);
     }, [bookmark, onEdit, noteText]);
 
-    const onEnterClick = (e: KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+    const onOpenBookmark = useCallback(() => {
+        if (isEdit || !onOpen) return;
+
+        onOpen(bookmark);
+    }, [bookmark, isEdit, onOpen]);
+
+    const onBookmarkKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+
+        e.preventDefault();
+        onOpenBookmark();
+    };
+
+    const onEnterClick = useCallback((e: KeyboardEvent) => {
+        if (isEdit && e.key === 'Enter' && !e.shiftKey) {
             onSubmit();
         }
-    };
+    }, [isEdit, onSubmit]);
 
     useEffect(() => {
         if (selectedTextRef && selectedTextRef.current) {
@@ -72,10 +86,20 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
         return () => {
             document.removeEventListener('keypress', onEnterClick);
         };
-    }, [bookmark, onEdit, noteText]);
+    }, [bookmark, noteText, onEnterClick]);
+
+    const bookmarkClassName = onOpen ? `${cls.otherBookmark} ${cls.otherBookmarkClickable}` : cls.otherBookmark;
+    const noteTextClassName = isEdit ? `${cls.noteText} ${cls.noteTextEditing}` : cls.noteText;
 
     return (
-        <div key={`rabbit-bookmark-${bookmark.selectedText}`} className={cls.otherBookmark}>
+        <div
+            key={`rabbit-bookmark-${bookmark.selectedText}`}
+            className={bookmarkClassName}
+            onClick={onOpenBookmark}
+            onKeyDown={onBookmarkKeyDown}
+            role={onOpen ? 'button' : undefined}
+            tabIndex={onOpen ? 0 : undefined}
+        >
             <div className={cls.floatingButtons}>
                 {onEdit &&
                     <button className={cls.button} onClick={changeEditableStatus}>
@@ -83,14 +107,45 @@ const TextBookmark = ({ bookmark, onEdit, onDelete }: TextBookmarkProps) => {
                     </button>
                 }
                 {onDelete &&
-                    <button className={cls.button} onClick={() => onDelete(bookmark)}>
+                    <button
+                        className={cls.button}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onDelete(bookmark);
+                        }}
+                    >
                         <DeleteIcon className={cls.icon} />
                     </button>
                 }
             </div>
-            <textarea ref={selectedTextRef} disabled name={'selectedText'} className={cls.selectedText} onChange={resizeTextareaOnChange} value={bookmark.selectedText} />
-            <textarea ref={noteTextRef} disabled={!isEdit} name={'noteText'} className={cls.noteText} onChange={onNoteTextChange} value={noteText} autoFocus />
-            {isEdit && <button className={cls.saveButton} onClick={onSubmit}>Save</button>}
+            <textarea
+                ref={selectedTextRef}
+                readOnly
+                name={'selectedText'}
+                className={cls.selectedText}
+                onChange={resizeTextareaOnChange}
+                value={bookmark.selectedText}
+            />
+            <textarea
+                ref={noteTextRef}
+                readOnly={!isEdit}
+                name={'noteText'}
+                className={noteTextClassName}
+                onChange={onNoteTextChange}
+                value={noteText}
+                autoFocus
+            />
+            {isEdit &&
+                <button
+                    className={cls.saveButton}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onSubmit();
+                    }}
+                >
+                    Save
+                </button>
+            }
         </div>
     );
 };

@@ -4,6 +4,8 @@
     padding: 10px;
     overflow-wrap: break-word;
     color: #eafff1;
+    font: inherit;
+    resize: none;
     scrollbar-color: rgba(55, 255, 139, 0.7) rgba(0, 0, 0, 0.28);
     background-color: rgba(0, 0, 0, 0.42);
     border: 1px solid rgba(55, 255, 139, 0.3);
@@ -21,7 +23,7 @@
     border-radius: 0 0 6px 6px;
 }
 
-.noteText:not(:disabled) {
+.noteTextEditing {
     border-color: rgba(55, 255, 139, 0.75);
     box-shadow:
         0 0 18px rgba(55, 255, 139, 0.2),
@@ -46,6 +48,19 @@
     &:hover .floatingButtons {
         display: flex;
     }
+}
+
+.otherBookmarkClickable {
+    cursor: pointer;
+}
+
+.otherBookmarkClickable .selectedText,
+.otherBookmarkClickable .noteText {
+    cursor: pointer;
+}
+
+.otherBookmarkClickable .noteTextEditing {
+    cursor: text;
 }
 
 .floatingButtons {

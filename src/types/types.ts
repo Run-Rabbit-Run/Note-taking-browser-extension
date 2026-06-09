@@ -8,6 +8,7 @@ export type VideoBookmarkType = {
 
 export interface OtherSiteBookmarkType {
     selectedText: string,
+    selectedTextPosition?: number,
     noteText: string,
     pageUrl: string,
     pageTitle: string,

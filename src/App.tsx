@@ -123,9 +123,22 @@ const App = () => {
         [activeTab?.id],
     );
 
+    const onOpenOtherBookmark = useCallback(
+        (bookmark: OtherSiteBookmarkType) => {
+            chrome.tabs
+                .sendMessage(activeTab?.id || 0, {
+                    type: 'SCROLL_TO_OTHER_SITE_BOOKMARK',
+                    value: bookmark.selectedText,
+                    selectedTextPosition: bookmark.selectedTextPosition,
+                })
+                .catch(() => undefined);
+        },
+        [activeTab?.id],
+    );
+
     const onEditOtherBookmark = useCallback(
         async (bookmark: OtherSiteBookmarkType) => {
-            const { selectedText, noteText, pageTitle, pageUrl } = bookmark;
+            const { selectedText, selectedTextPosition, noteText, pageTitle, pageUrl } = bookmark;
 
             const editedBookmark = otherSiteBookmarks.find((bookmark) => bookmark.selectedText === selectedText);
 
@@ -133,6 +146,7 @@ const App = () => {
                 editedBookmark.noteText = noteText;
                 const newBookmark = {
                     selectedText,
+                    selectedTextPosition,
                     noteText,
                     pageTitle,
                     pageUrl,
@@ -178,6 +192,7 @@ const App = () => {
                         bookmark={bookmark}
                         onEdit={onEditOtherBookmark}
                         onDelete={onDeleteOtherBookmark}
+                        onOpen={onOpenOtherBookmark}
                     />
                 ))}
                 {/*<a href={url} download={`${activeTab?.title}.md`}>*/}
@@ -186,7 +201,14 @@ const App = () => {
                 </a>
             </div>
         );
-    }, [otherSiteBookmarks]);
+    }, [
+        activeTab?.title,
+        activeTab?.url,
+        onDeleteOtherBookmark,
+        onEditOtherBookmark,
+        onOpenOtherBookmark,
+        otherSiteBookmarks,
+    ]);
 
     const renderVideoBookmarks = useMemo(() => {
         if (!videoBookmarks || videoBookmarks.length === 0) {
