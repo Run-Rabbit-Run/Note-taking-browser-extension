@@ -7,6 +7,18 @@ import { AllNotes } from './components/AllNotes';
 import VideoBookmark from './components/VideoBookmark/ui/VideoBookmark.tsx';
 import Tab = chrome.tabs.Tab;
 
+const DEFAULT_EXPORT_FILE_NAME = 'rabbit-note';
+
+const createMarkdownFileName = (title?: string) => {
+    const safeTitle = (title || DEFAULT_EXPORT_FILE_NAME)
+        .replace(/[\\/:*?"<>|]/g, '-')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 100);
+
+    return `${safeTitle || DEFAULT_EXPORT_FILE_NAME}.md`;
+};
+
 // const test = [
 //     {
 //         "time": 7.191035,
@@ -174,13 +186,17 @@ const App = () => {
             return <div className={cls.emptyState}>No other bookmarks</div>;
         }
 
-        const url = createDownloadBookmarksLink(otherSiteBookmarks, activeTab?.url);
-
         const download = () => {
+            const url = createDownloadBookmarksLink(otherSiteBookmarks, activeTab?.url, 'url');
+
+            if (!url) return;
+
             chrome.downloads.download({
                 url: url,
-                filename: 'Obsidian/фай8л.md', // Предложит сохранить в подпапку Obsidian
-                saveAs: true, // Покажет диалог сохранения
+                filename: createMarkdownFileName(activeTab?.title),
+                saveAs: true,
+            }, () => {
+                URL.revokeObjectURL(url);
             });
         };
 
@@ -195,10 +211,9 @@ const App = () => {
                         onOpen={onOpenOtherBookmark}
                     />
                 ))}
-                {/*<a href={url} download={`${activeTab?.title}.md`}>*/}
-                <a className={cls.exportLink} download={`${activeTab?.title}.md`} onClick={download}>
+                <button type="button" className={cls.exportLink} onClick={download}>
                     Export to MD
-                </a>
+                </button>
             </div>
         );
     }, [
