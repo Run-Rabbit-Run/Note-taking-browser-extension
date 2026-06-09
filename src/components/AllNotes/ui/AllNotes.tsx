@@ -1,7 +1,7 @@
 import cls from './AllNotes.module.scss';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getActiveTab } from '../../../helpers/utils.ts';
-import { OtherSiteBookmarkType, VideoBookmarkType } from '../../../types/types.ts';
+import { BookmarkType, OtherSiteBookmarkType, VideoBookmarkType } from '../../../types/types.ts';
 import { TextBookmark } from '../../TextBookmark';
 import { VideoBookmark } from '../../VideoBookmark';
 import { isVideoBookmark } from '../../../helpers/typeUtils.ts';
@@ -30,6 +30,14 @@ const AllNotes = () => {
         });
     };
 
+    const onOpenBookmark = useCallback((bookmark: BookmarkType) => {
+        chrome.runtime
+            .sendMessage({
+                type: 'OPEN_BOOKMARK_IN_NEW_TAB',
+                bookmark,
+            })
+            .catch(() => undefined);
+    }, []);
 
     useEffect(() => {
         getBookmarksFromStorage().catch(console.error);
@@ -44,7 +52,7 @@ const AllNotes = () => {
                 const isVideoList = isVideoBookmark(firstBookmark);
 
                 return (
-                    <details className={cls.pageBookmarks}>
+                    <details key={firstBookmark.pageUrl} className={cls.pageBookmarks}>
                         <summary className={isVideoList ? cls.pageTitleVideo : cls.pageTitleText}>
                             {firstBookmark.pageTitle}
                         </summary>
@@ -54,9 +62,21 @@ const AllNotes = () => {
                         <div className={cls.bookmarksList}>
                             {bookmarks.map((bookmark) => {
                                 if (isVideoBookmark(bookmark)) {
-                                    return <VideoBookmark key={bookmark.time} bookmark={bookmark} />;
+                                    return (
+                                        <VideoBookmark
+                                            key={bookmark.time}
+                                            bookmark={bookmark}
+                                            onOpenBookmark={onOpenBookmark}
+                                        />
+                                    );
                                 } else {
-                                    return <TextBookmark key={bookmark.selectedText} bookmark={bookmark} />;
+                                    return (
+                                        <TextBookmark
+                                            key={bookmark.selectedText}
+                                            bookmark={bookmark}
+                                            onOpen={onOpenBookmark}
+                                        />
+                                    );
                                 }
                             })}
                         </div>

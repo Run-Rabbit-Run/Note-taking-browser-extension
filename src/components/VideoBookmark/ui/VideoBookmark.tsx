@@ -5,14 +5,27 @@ import DeleteIcon from '../../../assets/delete.svg?react';
 import EditIcon from '../../../assets/edit.svg?react';
 import { VideoBookmarkType } from '../../../types/types.ts';
 
+const isEditableTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+
+    return Boolean(target.closest('textarea, input, select, [contenteditable="true"]'));
+};
+
 interface VideoBookmarkProps {
     bookmark: VideoBookmarkType;
     onEditBookmark?: (bookmark: VideoBookmarkType) => void;
+    onOpenBookmark?: (bookmark: VideoBookmarkType) => void;
     onPlayBookmark?: (bookmark: VideoBookmarkType) => void;
     onDeleteBookmark?: (bookmark: VideoBookmarkType) => void;
 }
 
-const VideoBookmark = ({ bookmark, onEditBookmark, onPlayBookmark, onDeleteBookmark }: VideoBookmarkProps) => {
+const VideoBookmark = ({
+    bookmark,
+    onEditBookmark,
+    onOpenBookmark,
+    onPlayBookmark,
+    onDeleteBookmark,
+}: VideoBookmarkProps) => {
     const noteTextRef = useRef<HTMLTextAreaElement>(null);
     const [isEdit, setIsEdit] = useState(false);
     const [noteText, setNoteText] = useState(bookmark.noteText || '');
@@ -45,6 +58,20 @@ const VideoBookmark = ({ bookmark, onEditBookmark, onPlayBookmark, onDeleteBookm
         setIsEdit(false);
     }, [bookmark, noteText, onEditBookmark]);
 
+    const onOpen = useCallback(() => {
+        if (isEdit || !onOpenBookmark) return;
+
+        onOpenBookmark(bookmark);
+    }, [bookmark, isEdit, onOpenBookmark]);
+
+    const onBookmarkKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (!onOpenBookmark || isEditableTarget(event.target)) return;
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+        event.preventDefault();
+        onOpen();
+    };
+
     useEffect(() => {
         setNoteText(bookmark.noteText || '');
     }, [bookmark.noteText]);
@@ -58,26 +85,57 @@ const VideoBookmark = ({ bookmark, onEditBookmark, onPlayBookmark, onDeleteBookm
 
     const bookmarkNoteText = bookmark.noteText || '';
     const isShowNote = bookmarkNoteText.trim().length > 0 && !isEdit;
+    const bookmarkClassName = onOpenBookmark
+        ? `${cls.videoBookmark} ${cls.videoBookmarkClickable}`
+        : cls.videoBookmark;
 
     return (
-        <div key={`rabbit-bookmark-${bookmark.time}`} className={cls.videoBookmark}>
+        <div
+            key={`rabbit-bookmark-${bookmark.time}`}
+            className={bookmarkClassName}
+            onClick={onOpen}
+            onKeyDown={onBookmarkKeyDown}
+            role={onOpenBookmark ? 'button' : undefined}
+            tabIndex={onOpenBookmark ? 0 : undefined}
+        >
             <div className={cls.bookmarkHeader}>
                 <p className={cls.timestamp}>
                     {bookmark.desc} - {bookmark.time}
                 </p>
                 <div className={cls.buttonWrapper}>
                     {onEditBookmark &&
-                        <button className={cls.button} title="Edit note" onClick={onToggleEdit}>
+                        <button
+                            className={cls.button}
+                            title="Edit note"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onToggleEdit();
+                            }}
+                        >
                             <EditIcon className={cls.icon} />
                         </button>
                     }
                     {onPlayBookmark &&
-                        <button className={cls.button} title="Play timestamp" onClick={() => onPlayBookmark(bookmark)}>
+                        <button
+                            className={cls.button}
+                            title="Play timestamp"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onPlayBookmark(bookmark);
+                            }}
+                        >
                             <PlayVideoIcon className={cls.icon} />
                         </button>
                     }
                     {onDeleteBookmark &&
-                        <button className={cls.button} title="Delete timestamp" onClick={() => onDeleteBookmark(bookmark)}>
+                        <button
+                            className={cls.button}
+                            title="Delete timestamp"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onDeleteBookmark(bookmark);
+                            }}
+                        >
                             <DeleteIcon className={cls.icon} />
                         </button>
                     }
@@ -94,7 +152,15 @@ const VideoBookmark = ({ bookmark, onEditBookmark, onPlayBookmark, onDeleteBookm
                         onChange={onNoteTextChange}
                         value={noteText}
                     />
-                    <button className={cls.saveButton} onClick={onSubmit}>Save note</button>
+                    <button
+                        className={cls.saveButton}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onSubmit();
+                        }}
+                    >
+                        Save note
+                    </button>
                 </div>
             }
         </div>

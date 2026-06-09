@@ -342,7 +342,13 @@ type TextMatch = {
             otherSiteOpened();
         } else if (type === 'PLAY_VIDEO_BOOKMARK') {
             const { value } = obj;
+            if (!youtubePlayer) {
+                response({ isPlayed: false });
+                return;
+            }
+
             youtubePlayer.currentTime = value;
+            response({ isPlayed: true });
         } else if (type === 'SCROLL_TO_OTHER_SITE_BOOKMARK') {
             const { value, selectedTextPosition } = obj;
             const isFound = scrollToOtherSiteBookmark(value, selectedTextPosition);

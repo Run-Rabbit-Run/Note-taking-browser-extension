@@ -3,6 +3,12 @@ import { OtherSiteBookmarkType } from '../../../types/types.ts';
 import DeleteIcon from '../../../assets/delete.svg?react';
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
+const isEditableTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+
+    return Boolean(target.closest('textarea, input, select, [contenteditable="true"]'));
+};
+
 export interface TextBookmarkProps {
     bookmark: OtherSiteBookmarkType;
     onEdit?: (bookmark: OtherSiteBookmarkType) => void;
@@ -60,6 +66,7 @@ const TextBookmark = ({ bookmark, onEdit, onDelete, onOpen }: TextBookmarkProps)
     }, [bookmark, isEdit, onOpen]);
 
     const onBookmarkKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (!onOpen || isEditableTarget(e.target)) return;
         if (e.key !== 'Enter' && e.key !== ' ') return;
 
         e.preventDefault();
