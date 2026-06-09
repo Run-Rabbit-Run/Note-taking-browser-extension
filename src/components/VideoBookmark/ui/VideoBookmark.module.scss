@@ -1,25 +1,49 @@
 .videoBookmark {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 5px;
-	width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 10px;
+    color: #d7ffe9;
+    background-color: rgba(3, 18, 12, 0.74);
+    border: 1px solid rgba(55, 255, 139, 0.24);
+    border-radius: 8px;
+    box-shadow: inset 0 0 18px rgba(55, 255, 139, 0.06);
+}
+
+.videoBookmark:hover {
+    border-color: rgba(55, 255, 139, 0.54);
 }
 
 .buttonWrapper {
-	display: flex;
-	gap: 5px;
+    display: flex;
+    flex-shrink: 0;
+    gap: 5px;
 }
 
 .button {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    color: #37ff8b;
+    cursor: pointer;
+    background-color: rgba(5, 16, 8, 0.88);
+    border: 1px solid rgba(55, 255, 139, 0.5);
+    border-radius: 5px;
+    box-shadow: 0 0 12px rgba(55, 255, 139, 0.14);
+}
+
+.button:hover {
+    color: #051008;
+    background-color: #37ff8b;
 }
 
 .icon {
-	width: 20px;
-	height: 20px;
-	color: #747bff;
+    width: 18px;
+    height: 18px;
+    color: currentColor;
 }

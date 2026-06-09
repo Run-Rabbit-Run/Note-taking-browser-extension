@@ -1,16 +1,108 @@
 .app {
-    max-width: 400px;
-    padding: 5px;
-    width: 100%;
+    width: 390px;
+    min-height: 160px;
+    max-height: 580px;
+    padding: 14px;
+    overflow-y: auto;
+    color: #d7ffe9;
+    background: linear-gradient(145deg, rgba(5, 10, 8, 0.98), rgba(1, 22, 16, 0.96));
+    border: 1px solid rgba(40, 255, 138, 0.65);
+    box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.55),
+        0 0 28px rgba(38, 255, 132, 0.28),
+        inset 0 0 24px rgba(22, 255, 113, 0.08);
+}
+
+.windowHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    color: #37ff8b;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(55, 255, 139, 0.42);
+}
+
+.status {
+    padding: 3px 7px;
+    color: #051008;
+    font-size: 10px;
+    background-color: #37ff8b;
+    border-radius: 4px;
+    box-shadow: 0 0 14px rgba(55, 255, 139, 0.6);
+}
+
+.activePage {
+    padding: 9px 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    color: #a8f7c2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background-color: rgba(3, 18, 12, 0.88);
+    border: 1px solid rgba(55, 255, 139, 0.25);
+    border-radius: 6px;
 }
 
 .videoBookmarksList,
 .otherBookmarksList {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
 }
 
 .bookmarkList {
-    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.emptyState {
+    padding: 10px;
+    color: rgba(215, 255, 233, 0.62);
+    background-color: rgba(0, 0, 0, 0.36);
+    border: 1px dashed rgba(55, 255, 139, 0.28);
+    border-radius: 6px;
+}
+
+.footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.secondaryButton,
+.exportLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 34px;
+    padding: 9px 12px;
+    color: #37ff8b;
+    font: inherit;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    cursor: pointer;
+    background-color: rgba(55, 255, 139, 0.08);
+    border: 1px solid rgba(55, 255, 139, 0.55);
+    border-radius: 6px;
+    box-shadow: inset 0 0 12px rgba(55, 255, 139, 0.08);
+    transition:
+        background-color 120ms ease,
+        box-shadow 120ms ease,
+        transform 120ms ease;
+}
+
+.secondaryButton:hover,
+.exportLink:hover {
+    color: #051008;
+    background-color: #37ff8b;
+    box-shadow: 0 0 18px rgba(55, 255, 139, 0.36);
+    transform: translateY(-1px);
 }

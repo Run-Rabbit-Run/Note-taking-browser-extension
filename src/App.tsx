@@ -136,7 +136,7 @@ const App = () => {
 
     const renderOtherBookmarks = useMemo(() => {
         if (!otherSiteBookmarks || otherSiteBookmarks.length === 0) {
-            return <div>No other bookmarks</div>;
+            return <div className={cls.emptyState}>No other bookmarks</div>;
         }
 
         const url = createDownloadBookmarksLink(otherSiteBookmarks, activeTab?.url);
@@ -145,17 +145,22 @@ const App = () => {
             chrome.downloads.download({
                 url: url,
                 filename: 'Obsidian/фай8л.md', // Предложит сохранить в подпапку Obsidian
-                saveAs: true // Покажет диалог сохранения
+                saveAs: true, // Покажет диалог сохранения
             });
-        }
+        };
 
         return (
             <div className={cls.otherBookmarksList}>
                 {otherSiteBookmarks.map((bookmark) => (
-                    <TextBookmark bookmark={bookmark} onEdit={onEditOtherBookmark} onDelete={onDeleteOtherBookmark} />
+                    <TextBookmark
+                        key={bookmark.selectedText}
+                        bookmark={bookmark}
+                        onEdit={onEditOtherBookmark}
+                        onDelete={onDeleteOtherBookmark}
+                    />
                 ))}
                 {/*<a href={url} download={`${activeTab?.title}.md`}>*/}
-                <a download={`${activeTab?.title}.md`} onClick={download}>
+                <a className={cls.exportLink} download={`${activeTab?.title}.md`} onClick={download}>
                     Export to MD
                 </a>
             </div>
@@ -164,13 +169,14 @@ const App = () => {
 
     const renderVideoBookmarks = useMemo(() => {
         if (!videoBookmarks || videoBookmarks.length === 0) {
-            return <div>No video bookmarks</div>;
+            return <div className={cls.emptyState}>No video bookmarks</div>;
         }
 
         return (
             <div className={cls.videoBookmarksList}>
                 {videoBookmarks.map((bookmark) => (
                     <VideoBookmark
+                        key={bookmark.time}
                         bookmark={bookmark}
                         onPlayBookmark={onPlayBookmark}
                         onDeleteBookmark={onDeleteBookmark}
@@ -182,17 +188,32 @@ const App = () => {
 
     return (
         <div className={cls.app}>
-            {isShowAllNotes && <AllNotes />}
+            <div className={cls.windowHeader}>
+                <span>&gt; rabbit_note</span>
+                <span className={cls.status}>armed</span>
+            </div>
             {!isShowAllNotes && (
                 <>
-                    {text}
+                    <div className={cls.activePage}>{text}</div>
                     <div className={cls.bookmarkList}>
                         {renderVideoBookmarks}
                         {renderOtherBookmarks}
                     </div>
-                    <div>
-                        <button onClick={() => setIsShowAllNotes(true)}>Show all notes</button>
+                    <div className={cls.footer}>
+                        <button className={cls.secondaryButton} onClick={() => setIsShowAllNotes(true)}>
+                            Show all notes
+                        </button>
                     </div>
+                </>
+            )}
+            {isShowAllNotes && (
+                <>
+                    <div className={cls.footer}>
+                        <button className={cls.secondaryButton} onClick={() => setIsShowAllNotes(false)}>
+                            Current page
+                        </button>
+                    </div>
+                    <AllNotes />
                 </>
             )}
         </div>
