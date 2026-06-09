@@ -1,0 +1,27 @@
+.tooltip {
+    position: fixed;
+    z-index: 2147483647;
+    max-width: min(320px, calc(100vw - 24px));
+    padding: 8px 10px;
+    color: #d7ffe9;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    pointer-events: none;
+    background-color: rgba(3, 18, 12, 0.98);
+    border: 1px solid rgba(55, 255, 139, 0.62);
+    border-radius: 6px;
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.46),
+        0 0 18px rgba(55, 255, 139, 0.22);
+}
+
+.tooltipBottom {
+    transform: translateX(-50%);
+}
+
+.tooltipTop {
+    transform: translate(-50%, -100%);
+}

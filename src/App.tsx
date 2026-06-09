@@ -4,7 +4,9 @@ import { OtherSiteBookmarkType, VideoBookmarkType } from './types/types.ts';
 import cls from './App.module.scss';
 import { TextBookmark } from './components/TextBookmark';
 import { AllNotes } from './components/AllNotes';
+import { OverflowTooltip } from './components/OverflowTooltip';
 import VideoBookmark from './components/VideoBookmark/ui/VideoBookmark.tsx';
+import SettingsIcon from './assets/settings.svg?react';
 import Tab = chrome.tabs.Tab;
 
 const DEFAULT_EXPORT_FILE_NAME = 'rabbit-note';
@@ -181,6 +183,10 @@ const App = () => {
         getBookmarksFromStorage().catch(console.error);
     }, []);
 
+    const openSettings = () => {
+        chrome.runtime.openOptionsPage();
+    };
+
     const renderOtherBookmarks = useMemo(() => {
         if (!otherSiteBookmarks || otherSiteBookmarks.length === 0) {
             return <div className={cls.emptyState}>No other bookmarks</div>;
@@ -249,11 +255,22 @@ const App = () => {
         <div className={cls.app}>
             <div className={cls.windowHeader}>
                 <span>&gt; rabbit_note</span>
-                <span className={cls.status}>armed</span>
+                <div className={cls.headerActions}>
+                    <span className={cls.status}>armed</span>
+                    <button
+                        type="button"
+                        className={cls.settingsButton}
+                        title="Settings"
+                        aria-label="Open settings"
+                        onClick={openSettings}
+                    >
+                        <SettingsIcon className={cls.settingsIcon} />
+                    </button>
+                </div>
             </div>
             {!isShowAllNotes && (
                 <>
-                    <div className={cls.activePage}>{text}</div>
+                    <OverflowTooltip className={cls.activePage} text={text} />
                     <div className={cls.bookmarkList}>
                         {renderVideoBookmarks}
                         {renderOtherBookmarks}

@@ -4,6 +4,7 @@ import { getActiveTab } from '../../../helpers/utils.ts';
 import { BookmarkType, OtherSiteBookmarkType, VideoBookmarkType } from '../../../types/types.ts';
 import { TextBookmark } from '../../TextBookmark';
 import { VideoBookmark } from '../../VideoBookmark';
+import { OverflowTooltip } from '../../OverflowTooltip';
 import { isVideoBookmark } from '../../../helpers/typeUtils.ts';
 import Tab = chrome.tabs.Tab;
 
@@ -137,7 +138,7 @@ const AllNotes = () => {
         return (
             <details key={pageGroup.pageUrl} className={cls.pageBookmarks}>
                 <summary className={pageGroup.isVideoList ? cls.pageTitleVideo : cls.pageTitleText}>
-                    <span className={cls.pageTitle}>{pageGroup.pageTitle}</span>
+                    <OverflowTooltip className={cls.pageTitle} text={pageGroup.pageTitle} />
                     <span className={cls.pageMeta}>{pageGroup.notesCount}</span>
                 </summary>
                 <a className={cls.pageLink} href={pageGroup.pageUrl} target="_blank">

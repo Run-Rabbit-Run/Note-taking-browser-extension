@@ -7,6 +7,10 @@
         "default_popup": "index.html",
         "default_icon": "note-taking.png"
     },
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": true
+    },
     "permissions": ["storage", "tabs", "downloads", "downloads.shelf"],
     "host_permissions": ["<all_urls>"],
     "background": {
