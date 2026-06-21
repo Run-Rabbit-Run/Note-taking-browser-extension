@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createBookmarksMarkdown, getActiveTab } from './helpers/utils.ts';
+import { createBookmarksMarkdown, createMarkdownFileName, getActiveTab } from './helpers/utils.ts';
 import { getEffectiveExportTemplate } from './helpers/exportTemplate.ts';
 import { writeMarkdownToExportDirectory } from './helpers/exportDirectory.ts';
 import { OtherSiteBookmarkType, VideoBookmarkType } from './types/types.ts';
@@ -11,23 +11,11 @@ import VideoBookmark from './components/VideoBookmark/ui/VideoBookmark.tsx';
 import SettingsIcon from './assets/settings.svg?react';
 import Tab = chrome.tabs.Tab;
 
-const DEFAULT_EXPORT_FILE_NAME = 'rabbit-note';
-
 type ExportStatusTone = 'progress' | 'success' | 'error';
 
 type ExportStatus = {
     message: string;
     tone: ExportStatusTone;
-};
-
-const createMarkdownFileName = (title?: string) => {
-    const safeTitle = (title || DEFAULT_EXPORT_FILE_NAME)
-        .replace(/[\\/:*?"<>|]/g, '-')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 100);
-
-    return `${safeTitle || DEFAULT_EXPORT_FILE_NAME}.md`;
 };
 
 const waitForDownloadCompletion = (downloadId: number) => {

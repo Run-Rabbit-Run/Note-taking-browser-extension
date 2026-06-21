@@ -6,6 +6,22 @@ import {
     formatExportDate,
 } from './exportTemplate.ts';
 
+const DEFAULT_EXPORT_FILE_NAME = 'rabbit-note';
+
+export const createSafePathSegment = (value: string, fallback: string = DEFAULT_EXPORT_FILE_NAME) => {
+    const safeValue = value
+        .replace(/[\\/:*?"<>|]/g, '-')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 100);
+
+    return safeValue || fallback;
+};
+
+export const createMarkdownFileName = (title?: string) => {
+    return `${createSafePathSegment(title || DEFAULT_EXPORT_FILE_NAME)}.md`;
+};
+
 export const getActiveTab = async () => {
     const queryOptions = { active: true, lastFocusedWindow: true };
     // `tab` will either be a `tabs.Tab` instance or `undefined`.

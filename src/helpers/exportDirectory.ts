@@ -20,6 +20,18 @@ type PermissionCapableDirectoryHandle = FileSystemDirectoryHandle & {
 
 export type ExportDirectoryWriteResult = 'written' | 'not-configured' | 'permission-denied' | 'unsupported' | 'failed';
 
+export type ExportDirectoryFile = {
+    content: string;
+    directoryPath?: string[];
+    fileName: string;
+};
+
+export type ExportDirectoryBulkWriteResult = {
+    failedCount: number;
+    result: ExportDirectoryWriteResult;
+    writtenCount: number;
+};
+
 export const isExportDirectoryPickerSupported = () => {
     return typeof window !== 'undefined'
         && 'indexedDB' in window
@@ -180,5 +192,65 @@ export const writeMarkdownToExportDirectory = async (
         return 'written';
     } catch {
         return 'failed';
+    }
+};
+
+const getTargetDirectoryHandle = async (
+    rootDirectoryHandle: FileSystemDirectoryHandle,
+    directoryPath: string[] = [],
+) => {
+    let targetDirectoryHandle = rootDirectoryHandle;
+
+    for (const directoryName of directoryPath) {
+        targetDirectoryHandle = await targetDirectoryHandle.getDirectoryHandle(directoryName, { create: true });
+    }
+
+    return targetDirectoryHandle;
+};
+
+export const writeMarkdownFilesToExportDirectory = async (
+    files: ExportDirectoryFile[],
+): Promise<ExportDirectoryBulkWriteResult> => {
+    if (!isExportDirectoryPickerSupported()) {
+        return { failedCount: files.length, result: 'unsupported', writtenCount: 0 };
+    }
+
+    const directoryHandle = await readStoredDirectoryHandle();
+
+    if (!directoryHandle) {
+        return { failedCount: files.length, result: 'not-configured', writtenCount: 0 };
+    }
+
+    try {
+        const permission = await requestWritePermission(directoryHandle);
+
+        if (permission !== 'granted') {
+            return { failedCount: files.length, result: 'permission-denied', writtenCount: 0 };
+        }
+
+        let writtenCount = 0;
+        let failedCount = 0;
+
+        for (const file of files) {
+            try {
+                const targetDirectoryHandle = await getTargetDirectoryHandle(directoryHandle, file.directoryPath);
+                const fileHandle = await targetDirectoryHandle.getFileHandle(file.fileName, { create: true });
+                const writableStream = await fileHandle.createWritable();
+
+                await writableStream.write(file.content);
+                await writableStream.close();
+                writtenCount += 1;
+            } catch {
+                failedCount += 1;
+            }
+        }
+
+        return {
+            failedCount,
+            result: failedCount === 0 ? 'written' : 'failed',
+            writtenCount,
+        };
+    } catch {
+        return { failedCount: files.length, result: 'failed', writtenCount: 0 };
     }
 };

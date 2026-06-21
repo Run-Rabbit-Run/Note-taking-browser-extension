@@ -1,16 +1,28 @@
 import cls from './AllNotes.module.scss';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getActiveTab } from '../../../helpers/utils.ts';
+import {
+    createBookmarksMarkdown,
+    createMarkdownFileName,
+    createSafePathSegment,
+    getActiveTab,
+} from '../../../helpers/utils.ts';
 import { BookmarkType, OtherSiteBookmarkType, VideoBookmarkType } from '../../../types/types.ts';
 import { TextBookmark } from '../../TextBookmark';
 import { VideoBookmark } from '../../VideoBookmark';
 import { OverflowTooltip } from '../../OverflowTooltip';
-import { isVideoBookmark } from '../../../helpers/typeUtils.ts';
-import { isExportTemplateStorageKey } from '../../../helpers/exportTemplate.ts';
+import { isOtherSiteBookmarks, isVideoBookmark } from '../../../helpers/typeUtils.ts';
+import { formatExportDate, getEffectiveExportTemplate, isExportTemplateStorageKey } from '../../../helpers/exportTemplate.ts';
+import { writeMarkdownFilesToExportDirectory } from '../../../helpers/exportDirectory.ts';
 import Tab = chrome.tabs.Tab;
 
 type PageBookmarks = VideoBookmarkType[] | OtherSiteBookmarkType[];
 type GroupMode = 'page' | 'domain';
+type ExportStatusTone = 'progress' | 'success' | 'error';
+
+type ExportStatus = {
+    message: string;
+    tone: ExportStatusTone;
+};
 
 type PageBookmarksGroup = {
     bookmarks: PageBookmarks;
@@ -70,10 +82,67 @@ const parseStoredBookmarks = (value: unknown): PageBookmarks | null => {
     }
 };
 
+const formatTimestamp = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+};
+
+const createVideoBookmarksMarkdown = (
+    bookmarks: VideoBookmarkType[],
+    pageUrl: string,
+    pageTitle: string,
+) => {
+    const notes = bookmarks
+        .map((bookmark) => {
+            const timestampUrl = `${pageUrl}${pageUrl.includes('?') ? '&' : '?'}t=${Math.floor(bookmark.time)}s`;
+            const note = bookmark.noteText.trim() ? `\n${bookmark.noteText.trim()}` : '';
+
+            return `- [${bookmark.desc || formatTimestamp(bookmark.time)}](${timestampUrl})${note}`;
+        })
+        .join('\n\n');
+
+    return `---
+tags:
+  - from_video
+created: ${formatExportDate()}
+Link: ${pageUrl}
+---
+# ${pageTitle}
+
+${notes}
+`;
+};
+
+const getUniqueFileName = (fileName: string, usedFileNames: Set<string>) => {
+    if (!usedFileNames.has(fileName)) {
+        usedFileNames.add(fileName);
+        return fileName;
+    }
+
+    const extensionIndex = fileName.lastIndexOf('.');
+    const baseName = extensionIndex > 0 ? fileName.slice(0, extensionIndex) : fileName;
+    const extension = extensionIndex > 0 ? fileName.slice(extensionIndex) : '';
+    let suffix = 2;
+    let uniqueFileName = `${baseName}-${suffix}${extension}`;
+
+    while (usedFileNames.has(uniqueFileName)) {
+        suffix += 1;
+        uniqueFileName = `${baseName}-${suffix}${extension}`;
+    }
+
+    usedFileNames.add(uniqueFileName);
+
+    return uniqueFileName;
+};
+
 const AllNotes = () => {
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
     const [store, setStore] = useState<Record<string, PageBookmarks>>({});
     const [groupMode, setGroupMode] = useState<GroupMode>('page');
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportStatus, setExportStatus] = useState<ExportStatus | null>(null);
 
     const getBookmarksFromStorage = async () => {
         const tab = (await getActiveTab()) || activeTab;
@@ -179,12 +248,130 @@ const AllNotes = () => {
         );
     }, [renderBookmark]);
 
+    const onExportAllNotes = async () => {
+        if (isExporting) return;
+
+        setIsExporting(true);
+        setExportStatus({
+            message: 'Preparing all notes export...',
+            tone: 'progress',
+        });
+
+        try {
+            const exportTemplate = await getEffectiveExportTemplate();
+            const usedFileNamesByDomain: Record<string, Set<string>> = {};
+            const files = pageGroups.reduce<Array<{ content: string; directoryPath: string[]; fileName: string }>>(
+                (acc, pageGroup) => {
+                    const domainDirectory = createSafePathSegment(pageGroup.domain, 'unknown-domain');
+                    const usedFileNames = usedFileNamesByDomain[domainDirectory] || new Set<string>();
+                    const baseFileName = createMarkdownFileName(pageGroup.pageTitle);
+                    const fileName = getUniqueFileName(baseFileName, usedFileNames);
+                    const content = isOtherSiteBookmarks(pageGroup.bookmarks)
+                        ? createBookmarksMarkdown(
+                            pageGroup.bookmarks,
+                            pageGroup.pageUrl,
+                            exportTemplate,
+                            pageGroup.pageTitle,
+                        )
+                        : createVideoBookmarksMarkdown(
+                            pageGroup.bookmarks,
+                            pageGroup.pageUrl,
+                            pageGroup.pageTitle,
+                        );
+
+                    usedFileNamesByDomain[domainDirectory] = usedFileNames;
+
+                    if (!content) return acc;
+
+                    acc.push({
+                        content,
+                        directoryPath: [domainDirectory],
+                        fileName,
+                    });
+
+                    return acc;
+                },
+                [],
+            );
+
+            if (files.length === 0) {
+                setExportStatus({
+                    message: 'Nothing to export',
+                    tone: 'error',
+                });
+                return;
+            }
+
+            const writeResult = await writeMarkdownFilesToExportDirectory(files);
+
+            if (writeResult.result === 'written') {
+                setExportStatus({
+                    message: `Exported ${writeResult.writtenCount} files`,
+                    tone: 'success',
+                });
+                return;
+            }
+
+            if (writeResult.result === 'not-configured') {
+                setExportStatus({
+                    message: 'Choose a default export folder in settings first',
+                    tone: 'error',
+                });
+                return;
+            }
+
+            if (writeResult.result === 'unsupported') {
+                setExportStatus({
+                    message: 'This browser cannot save multiple files to a selected folder',
+                    tone: 'error',
+                });
+                return;
+            }
+
+            if (writeResult.result === 'permission-denied') {
+                setExportStatus({
+                    message: 'Export folder permission was denied. Choose the folder again in settings',
+                    tone: 'error',
+                });
+                return;
+            }
+
+            setExportStatus({
+                message: `Exported ${writeResult.writtenCount} files, failed ${writeResult.failedCount}`,
+                tone: writeResult.writtenCount > 0 ? 'success' : 'error',
+            });
+        } catch (error) {
+            setExportStatus({
+                message: error instanceof Error ? error.message : 'All notes export failed',
+                tone: 'error',
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     useEffect(() => {
         getBookmarksFromStorage().catch(console.error);
     }, []);
 
     return (
         <div className={cls.wrapper}>
+            <div className={cls.exportPanel}>
+                <button
+                    type="button"
+                    className={cls.exportButton}
+                    disabled={isExporting || pageGroups.length === 0}
+                    onClick={onExportAllNotes}
+                >
+                    {isExporting ? 'Exporting...' : 'Export all notes'}
+                </button>
+                {exportStatus && (
+                    <div className={`${cls.exportStatus} ${cls[`exportStatus_${exportStatus.tone}`]}`}>
+                        {exportStatus.message}
+                    </div>
+                )}
+            </div>
+
             <div className={cls.groupControls} role="group" aria-label="Group notes">
                 <button
                     type="button"
