@@ -5,6 +5,12 @@ import {
     getExportTemplateSettings,
     saveExportTemplateSettings,
 } from '../helpers/exportTemplate.ts';
+import {
+    chooseExportDirectory,
+    clearExportDirectory,
+    getExportDirectoryName,
+    isExportDirectoryPickerSupported,
+} from '../helpers/exportDirectory.ts';
 import type { ExportTemplateMode } from '../helpers/exportTemplate.ts';
 import cls from './OptionsPage.module.scss';
 
@@ -13,12 +19,17 @@ const OptionsPage = () => {
     const [template, setTemplate] = useState(DEFAULT_EXPORT_TEMPLATE);
     const [isLoading, setIsLoading] = useState(true);
     const [statusText, setStatusText] = useState('');
+    const [exportDirectoryName, setExportDirectoryName] = useState('');
+    const [isDirectoryPickerSupported, setIsDirectoryPickerSupported] = useState(false);
 
     useEffect(() => {
-        getExportTemplateSettings()
-            .then((settings) => {
+        setIsDirectoryPickerSupported(isExportDirectoryPickerSupported());
+
+        Promise.all([getExportTemplateSettings(), getExportDirectoryName()])
+            .then(([settings, directoryName]) => {
                 setMode(settings.mode);
                 setTemplate(settings.template);
+                setExportDirectoryName(directoryName);
             })
             .catch(() => {
                 setStatusText('Failed to load settings');
@@ -54,6 +65,30 @@ const OptionsPage = () => {
         setStatusText('Default template is active');
     };
 
+    const onChooseDirectory = async () => {
+        if (!isDirectoryPickerSupported) {
+            setStatusText('Folder picker is not supported in this browser');
+            return;
+        }
+
+        try {
+            const directoryName = await chooseExportDirectory();
+
+            setExportDirectoryName(directoryName);
+            setStatusText('Export folder saved');
+        } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') return;
+
+            setStatusText('Failed to save export folder');
+        }
+    };
+
+    const onClearDirectory = async () => {
+        await clearExportDirectory();
+        setExportDirectoryName('');
+        setStatusText('Export folder cleared');
+    };
+
     return (
         <main className={cls.page}>
             <div className={cls.shell}>
@@ -67,10 +102,42 @@ const OptionsPage = () => {
                         <div>
                             <h2 className={cls.sectionTitle}>Markdown export</h2>
                             <p className={cls.sectionText}>
-                                Choose the default MD export template or save a custom one.
+                                Choose the default folder and template for MD exports.
                             </p>
                         </div>
                         {statusText && <span className={cls.inlineStatus}>{statusText}</span>}
+                    </div>
+
+                    <div className={cls.destinationPanel}>
+                        <div className={cls.destinationInfo}>
+                            <span className={cls.fieldLabel}>Default export folder</span>
+                            <span className={cls.directoryValue}>
+                                {exportDirectoryName || 'Not selected'}
+                            </span>
+                            <p className={cls.sectionText}>
+                                {isDirectoryPickerSupported
+                                    ? 'Exports use this folder when browser permission is available.'
+                                    : 'This browser cannot save directly to a selected folder.'}
+                            </p>
+                        </div>
+                        <div className={cls.destinationActions}>
+                            <button
+                                type="button"
+                                className={cls.secondaryButton}
+                                disabled={isLoading || !isDirectoryPickerSupported}
+                                onClick={onChooseDirectory}
+                            >
+                                Choose folder
+                            </button>
+                            <button
+                                type="button"
+                                className={cls.secondaryButton}
+                                disabled={isLoading || !exportDirectoryName}
+                                onClick={onClearDirectory}
+                            >
+                                Clear folder
+                            </button>
+                        </div>
                     </div>
 
                     <div className={cls.modeGroup} role="radiogroup" aria-label="Export template mode">

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createDownloadBookmarksLink, getActiveTab } from './helpers/utils.ts';
+import { createBookmarksMarkdown, getActiveTab } from './helpers/utils.ts';
 import { getEffectiveExportTemplate } from './helpers/exportTemplate.ts';
+import { writeMarkdownToExportDirectory } from './helpers/exportDirectory.ts';
 import { OtherSiteBookmarkType, VideoBookmarkType } from './types/types.ts';
 import cls from './App.module.scss';
 import { TextBookmark } from './components/TextBookmark';
@@ -12,6 +13,13 @@ import Tab = chrome.tabs.Tab;
 
 const DEFAULT_EXPORT_FILE_NAME = 'rabbit-note';
 
+type ExportStatusTone = 'progress' | 'success' | 'error';
+
+type ExportStatus = {
+    message: string;
+    tone: ExportStatusTone;
+};
+
 const createMarkdownFileName = (title?: string) => {
     const safeTitle = (title || DEFAULT_EXPORT_FILE_NAME)
         .replace(/[\\/:*?"<>|]/g, '-')
@@ -20,6 +28,42 @@ const createMarkdownFileName = (title?: string) => {
         .slice(0, 100);
 
     return `${safeTitle || DEFAULT_EXPORT_FILE_NAME}.md`;
+};
+
+const waitForDownloadCompletion = (downloadId: number) => {
+    return new Promise<'complete' | 'interrupted'>((resolve) => {
+        const listener = (downloadDelta: chrome.downloads.DownloadDelta) => {
+            if (downloadDelta.id !== downloadId || !downloadDelta.state?.current) return;
+
+            const downloadState = downloadDelta.state.current;
+
+            if (downloadState !== 'complete' && downloadState !== 'interrupted') return;
+
+            chrome.downloads.onChanged.removeListener(listener);
+            resolve(downloadState);
+        };
+
+        chrome.downloads.onChanged.addListener(listener);
+    });
+};
+
+const downloadMarkdownWithSaveDialog = (url: string, fileName: string) => {
+    return new Promise<number>((resolve, reject) => {
+        chrome.downloads.download({
+            url,
+            filename: fileName,
+            saveAs: true,
+        }, (downloadId) => {
+            const downloadError = chrome.runtime.lastError;
+
+            if (downloadError || typeof downloadId !== 'number') {
+                reject(new Error(downloadError?.message || 'Failed to start download'));
+                return;
+            }
+
+            resolve(downloadId);
+        });
+    });
 };
 
 // const test = [
@@ -48,6 +92,8 @@ const App = () => {
     const [otherSiteBookmarks, setOtherSiteBookmarks] = useState<OtherSiteBookmarkType[]>([]);
     const [text, setText] = useState('');
     const [isShowAllNotes, setIsShowAllNotes] = useState(false);
+    const [exportStatus, setExportStatus] = useState<ExportStatus | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
 
     const getBookmarksFromStorage = async () => {
         const tab = (await getActiveTab()) || activeTab;
@@ -194,24 +240,78 @@ const App = () => {
         }
 
         const download = async () => {
-            const exportTemplate = await getEffectiveExportTemplate();
-            const url = createDownloadBookmarksLink(
-                otherSiteBookmarks,
-                activeTab?.url,
-                'url',
-                exportTemplate,
-                activeTab?.title,
-            );
+            if (isExporting) return;
 
-            if (!url) return;
-
-            chrome.downloads.download({
-                url: url,
-                filename: createMarkdownFileName(activeTab?.title),
-                saveAs: true,
-            }, () => {
-                URL.revokeObjectURL(url);
+            setIsExporting(true);
+            setExportStatus({
+                message: 'Preparing export...',
+                tone: 'progress',
             });
+
+            try {
+                const exportTemplate = await getEffectiveExportTemplate();
+                const markdownContent = createBookmarksMarkdown(
+                    otherSiteBookmarks,
+                    activeTab?.url,
+                    exportTemplate,
+                    activeTab?.title,
+                );
+                const fileName = createMarkdownFileName(activeTab?.title);
+
+                if (!markdownContent) {
+                    setExportStatus({
+                        message: 'Nothing to export',
+                        tone: 'error',
+                    });
+                    return;
+                }
+
+                const writeResult = await writeMarkdownToExportDirectory(fileName, markdownContent);
+
+                if (writeResult === 'written') {
+                    setExportStatus({
+                        message: `Saved: ${fileName}`,
+                        tone: 'success',
+                    });
+                    return;
+                }
+
+                const url = URL.createObjectURL(new Blob([markdownContent], { type: 'text/markdown' }));
+
+                setExportStatus({
+                    message: writeResult === 'permission-denied' || writeResult === 'failed'
+                        ? 'Selected folder is unavailable. Opening save dialog...'
+                        : 'Opening save dialog...',
+                    tone: 'progress',
+                });
+
+                try {
+                    const downloadId = await downloadMarkdownWithSaveDialog(url, fileName);
+
+                    setExportStatus({
+                        message: `Download started: ${fileName}`,
+                        tone: 'progress',
+                    });
+
+                    const downloadState = await waitForDownloadCompletion(downloadId);
+
+                    setExportStatus({
+                        message: downloadState === 'complete'
+                            ? `Downloaded: ${fileName}`
+                            : 'Download was interrupted',
+                        tone: downloadState === 'complete' ? 'success' : 'error',
+                    });
+                } finally {
+                    URL.revokeObjectURL(url);
+                }
+            } catch (error) {
+                setExportStatus({
+                    message: error instanceof Error ? error.message : 'Export failed',
+                    tone: 'error',
+                });
+            } finally {
+                setIsExporting(false);
+            }
         };
 
         return (
@@ -225,14 +325,21 @@ const App = () => {
                         onOpen={onOpenOtherBookmark}
                     />
                 ))}
-                <button type="button" className={cls.exportLink} onClick={download}>
-                    Export to MD
+                <button type="button" className={cls.exportLink} disabled={isExporting} onClick={download}>
+                    {isExporting ? 'Exporting...' : 'Export to MD'}
                 </button>
+                {exportStatus && (
+                    <div className={`${cls.exportStatus} ${cls[`exportStatus_${exportStatus.tone}`]}`}>
+                        {exportStatus.message}
+                    </div>
+                )}
             </div>
         );
     }, [
         activeTab?.title,
         activeTab?.url,
+        exportStatus,
+        isExporting,
         onDeleteOtherBookmark,
         onEditOtherBookmark,
         onOpenOtherBookmark,

@@ -13,10 +13,9 @@ export const getActiveTab = async () => {
     return tab;
 };
 
-export const createDownloadBookmarksLink = (
+export const createBookmarksMarkdown = (
     bookmarks: OtherSiteBookmarkType[],
     tabUrl?: string,
-    returnMode: 'url' | 'content' = 'content',
     template: string = DEFAULT_EXPORT_TEMPLATE,
     pageTitle: string = '',
 ): string => {
@@ -24,14 +23,24 @@ export const createDownloadBookmarksLink = (
         return '';
     }
 
-    const resultText = applyExportTemplate(template, {
+    return applyExportTemplate(template, {
         date: formatExportDate(),
         notes: createDefaultBookmarksText(bookmarks),
         pageTitle,
         pageUrl: tabUrl || '',
     });
+};
 
-    if (returnMode === 'content') return resultText;
+export const createDownloadBookmarksLink = (
+    bookmarks: OtherSiteBookmarkType[],
+    tabUrl?: string,
+    returnMode: 'url' | 'content' = 'content',
+    template: string = DEFAULT_EXPORT_TEMPLATE,
+    pageTitle: string = '',
+): string => {
+    const resultText = createBookmarksMarkdown(bookmarks, tabUrl, template, pageTitle);
+
+    if (!resultText || returnMode === 'content') return resultText;
 
     const blobText = new Blob([resultText], { type: 'text/markdown' });
 

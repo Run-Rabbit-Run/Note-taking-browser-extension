@@ -141,3 +141,38 @@
     box-shadow: 0 0 18px rgba(55, 255, 139, 0.36);
     transform: translateY(-1px);
 }
+
+.secondaryButton:disabled,
+.exportLink:disabled {
+    color: rgba(215, 255, 233, 0.42);
+    cursor: wait;
+    background-color: rgba(55, 255, 139, 0.04);
+    border-color: rgba(55, 255, 139, 0.2);
+    box-shadow: none;
+    transform: none;
+}
+
+.exportStatus {
+    padding: 8px 10px;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+    background-color: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(55, 255, 139, 0.24);
+    border-radius: 6px;
+}
+
+.exportStatus_progress {
+    color: #a8f7c2;
+}
+
+.exportStatus_success {
+    color: #37ff8b;
+    border-color: rgba(55, 255, 139, 0.55);
+}
+
+.exportStatus_error {
+    color: #ffb7b7;
+    border-color: rgba(255, 112, 112, 0.55);
+}

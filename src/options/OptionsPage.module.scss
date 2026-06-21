@@ -89,6 +89,45 @@
     margin-bottom: 14px;
 }
 
+.destinationPanel {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px;
+    margin-bottom: 14px;
+    background-color: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(55, 255, 139, 0.24);
+    border-radius: 6px;
+}
+
+.destinationInfo {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+}
+
+.directoryValue {
+    width: fit-content;
+    max-width: 100%;
+    padding: 5px 8px;
+    overflow: hidden;
+    color: #d7ffe9;
+    font-size: 13px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background-color: rgba(55, 255, 139, 0.08);
+    border: 1px solid rgba(55, 255, 139, 0.24);
+    border-radius: 5px;
+}
+
+.destinationActions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
 .modeCard {
     display: flex;
     align-items: center;
@@ -219,8 +258,14 @@
     }
 
     .sectionHeader,
+    .destinationPanel,
     .actions {
         flex-direction: column;
+    }
+
+    .destinationActions {
+        width: 100%;
+        flex-wrap: wrap;
     }
 
     .modeGroup {
