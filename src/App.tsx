@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createDownloadBookmarksLink, getActiveTab } from './helpers/utils.ts';
+import { getEffectiveExportTemplate } from './helpers/exportTemplate.ts';
 import { OtherSiteBookmarkType, VideoBookmarkType } from './types/types.ts';
 import cls from './App.module.scss';
 import { TextBookmark } from './components/TextBookmark';
@@ -192,8 +193,15 @@ const App = () => {
             return <div className={cls.emptyState}>No other bookmarks</div>;
         }
 
-        const download = () => {
-            const url = createDownloadBookmarksLink(otherSiteBookmarks, activeTab?.url, 'url');
+        const download = async () => {
+            const exportTemplate = await getEffectiveExportTemplate();
+            const url = createDownloadBookmarksLink(
+                otherSiteBookmarks,
+                activeTab?.url,
+                'url',
+                exportTemplate,
+                activeTab?.title,
+            );
 
             if (!url) return;
 

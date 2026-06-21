@@ -6,6 +6,7 @@ import { TextBookmark } from '../../TextBookmark';
 import { VideoBookmark } from '../../VideoBookmark';
 import { OverflowTooltip } from '../../OverflowTooltip';
 import { isVideoBookmark } from '../../../helpers/typeUtils.ts';
+import { isExportTemplateStorageKey } from '../../../helpers/exportTemplate.ts';
 import Tab = chrome.tabs.Tab;
 
 type PageBookmarks = VideoBookmarkType[] | OtherSiteBookmarkType[];
@@ -44,6 +45,31 @@ const getDomainName = (pageUrl: string) => {
     }
 };
 
+const parseStoredBookmarks = (value: unknown): PageBookmarks | null => {
+    if (typeof value !== 'string') return null;
+
+    try {
+        const parsedValue = JSON.parse(value);
+
+        if (!Array.isArray(parsedValue) || parsedValue.length === 0) return null;
+
+        const firstBookmark = parsedValue[0] as Partial<BookmarkType>;
+
+        if (
+            !firstBookmark ||
+            typeof firstBookmark !== 'object' ||
+            typeof firstBookmark.pageTitle !== 'string' ||
+            typeof firstBookmark.pageUrl !== 'string'
+        ) {
+            return null;
+        }
+
+        return parsedValue as PageBookmarks;
+    } catch {
+        return null;
+    }
+};
+
 const AllNotes = () => {
     const [activeTab, setActiveTab] = useState<Tab | null>(null);
     const [store, setStore] = useState<Record<string, PageBookmarks>>({});
@@ -54,14 +80,16 @@ const AllNotes = () => {
         setActiveTab(tab);
 
         chrome.storage.sync.get().then((data) => {
-            Object.values(data).map(
-                (bookmark) => JSON.parse(bookmark) as VideoBookmarkType[] | OtherSiteBookmarkType[],
-            );
+            const parsedData: Record<string, PageBookmarks> = {};
 
-            const parsedData: Record<string, VideoBookmarkType[] | OtherSiteBookmarkType[]> = {};
+            Object.entries(data).forEach(([key, value]) => {
+                if (isExportTemplateStorageKey(key)) return;
 
-            Object.keys(data).forEach((key) => {
-                parsedData[key] = JSON.parse(data[key]);
+                const bookmarks = parseStoredBookmarks(value);
+
+                if (bookmarks) {
+                    parsedData[key] = bookmarks;
+                }
             });
 
             setStore(parsedData);
