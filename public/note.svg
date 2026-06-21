@@ -1,10 +1,51 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M8 2V5" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M16 2V5" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M21 8.5V13.63C20.11 12.92 18.98 12.5 17.75 12.5C16.52 12.5 15.37 12.93 14.47 13.66C13.26 14.61 12.5 16.1 12.5 17.75C12.5 18.73 12.78 19.67 13.26 20.45C13.63 21.06 14.11 21.59 14.68 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7 11H13" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7 16H9.62" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M23 17.75C23 18.73 22.72 19.67 22.24 20.45C21.96 20.93 21.61 21.35 21.2 21.69C20.28 22.51 19.08 23 17.75 23C16.6 23 15.54 22.63 14.68 22C14.11 21.59 13.63 21.06 13.26 20.45C12.78 19.67 12.5 18.73 12.5 17.75C12.5 16.1 13.26 14.61 14.47 13.66C15.37 12.93 16.52 12.5 17.75 12.5C18.98 12.5 20.11 12.92 21 13.63C22.22 14.59 23 16.08 23 17.75Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M17.75 20.25C17.75 18.87 18.87 17.75 20.25 17.75C18.87 17.75 17.75 16.63 17.75 15.25C17.75 16.63 16.63 17.75 15.25 17.75C16.63 17.75 17.75 18.87 17.75 20.25Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="app-bg" x1="72" y1="54" x2="442" y2="472" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#050a08"/>
+            <stop offset="1" stop-color="#011610"/>
+        </linearGradient>
+        <linearGradient id="panel-bg" x1="148" y1="112" x2="370" y2="424" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#03120c"/>
+            <stop offset="1" stop-color="#000000"/>
+        </linearGradient>
+        <linearGradient id="accent-line" x1="150" y1="168" x2="362" y2="168" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#37ff8b"/>
+            <stop offset="1" stop-color="#37ff8b" stop-opacity="0.12"/>
+        </linearGradient>
+        <filter id="green-glow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+            <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#37ff8b" flood-opacity="0.42"/>
+            <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.58"/>
+        </filter>
+        <filter id="soft-glow" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+            <feDropShadow dx="0" dy="0" stdDeviation="7" flood-color="#37ff8b" flood-opacity="0.72"/>
+        </filter>
+    </defs>
+
+    <rect x="32" y="32" width="448" height="448" rx="72" fill="url(#app-bg)"/>
+    <rect x="32" y="32" width="448" height="448" rx="72" stroke="#37ff8b" stroke-opacity="0.62" stroke-width="8"/>
+    <rect x="56" y="56" width="400" height="400" rx="52" stroke="#37ff8b" stroke-opacity="0.14" stroke-width="2"/>
+
+    <path d="M112 126H400" stroke="#37ff8b" stroke-opacity="0.12" stroke-width="2"/>
+    <path d="M112 386H400" stroke="#37ff8b" stroke-opacity="0.1" stroke-width="2"/>
+    <path d="M126 112V400" stroke="#37ff8b" stroke-opacity="0.08" stroke-width="2"/>
+    <path d="M386 112V400" stroke="#37ff8b" stroke-opacity="0.08" stroke-width="2"/>
+
+    <g filter="url(#green-glow)">
+        <path d="M150 112H326L362 148V400H150V112Z" fill="url(#panel-bg)"/>
+        <path d="M150 112H326L362 148V400H150V112Z" stroke="#37ff8b" stroke-opacity="0.72" stroke-width="7" stroke-linejoin="round"/>
+        <path d="M326 114V148H360" stroke="#37ff8b" stroke-opacity="0.74" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M170 168H342" stroke="url(#accent-line)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M188 220H324" stroke="#a8f7c2" stroke-opacity="0.78" stroke-width="12" stroke-linecap="round"/>
+        <path d="M188 266H302" stroke="#a8f7c2" stroke-opacity="0.66" stroke-width="12" stroke-linecap="round"/>
+        <path d="M188 312H276" stroke="#a8f7c2" stroke-opacity="0.54" stroke-width="12" stroke-linecap="round"/>
+    </g>
+
+    <g filter="url(#soft-glow)">
+        <path d="M181 357L206 372L181 387" stroke="#37ff8b" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M225 386H282" stroke="#37ff8b" stroke-width="13" stroke-linecap="round"/>
+    </g>
+
+    <path d="M322 342L383 281C391 273 404 273 412 281L421 290C429 298 429 311 421 319L360 380L322 390L322 342Z" fill="#051008"/>
+    <path d="M322 342L383 281C391 273 404 273 412 281L421 290C429 298 429 311 421 319L360 380L322 390L322 342Z" stroke="#37ff8b" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M382 285L417 320" stroke="#ff6f91" stroke-width="9" stroke-linecap="round"/>
 </svg>

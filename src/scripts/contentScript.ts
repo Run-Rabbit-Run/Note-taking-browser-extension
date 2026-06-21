@@ -289,16 +289,18 @@ type TextMatch = {
                     selectionBtn.id = 'RabbitNoteTakingApp';
                     selectionBtn.style.position = 'absolute';
                     selectionBtn.style.zIndex = '1000';
-                    selectionBtn.style.backgroundColor = '#ff5722';
+                    selectionBtn.style.backgroundColor = 'rgba(3, 18, 12, 0.92)';
                     selectionBtn.style.backgroundImage = `url(${chrome.runtime.getURL('edit.png')})`;
-                    selectionBtn.style.backgroundSize = 'cover';
-                    selectionBtn.style.color = '#fff';
-                    selectionBtn.style.border = 'none';
-                    selectionBtn.style.borderRadius = '8px';
+                    selectionBtn.style.backgroundPosition = 'center';
+                    selectionBtn.style.backgroundRepeat = 'no-repeat';
+                    selectionBtn.style.backgroundSize = '22px 22px';
+                    selectionBtn.style.border = '1px solid rgba(55, 255, 139, 0.72)';
+                    selectionBtn.style.borderRadius = '6px';
+                    selectionBtn.style.boxShadow =
+                        '0 0 18px rgba(55, 255, 139, 0.34), inset 0 0 12px rgba(55, 255, 139, 0.1)';
                     selectionBtn.style.cursor = 'pointer';
                     selectionBtn.style.width = `${BUTTON_WIDTH}px`;
                     selectionBtn.style.height = `${BUTTON_WIDTH}px`;
-                    selectionBtn.style.opacity = `0.2`;
 
                     const topPosition = rect.top + window.scrollY - 40; // 40px над выделением
                     const leftPosition =  rect.left + window.scrollX + (rect.width / 2) - (BUTTON_WIDTH / 2); // Центр по горизонтали
